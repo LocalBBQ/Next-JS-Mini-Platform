@@ -15,16 +15,16 @@ function TeamSide({
 }) {
   return (
     <div
-      className={`flex min-w-0 items-center gap-3 ${
+      className={`flex min-w-0 items-center gap-2 sm:gap-3 ${
         align === "right" ? "flex-row-reverse text-right" : ""
       }`}
     >
       {team.logo ? (
         // ESPN hosts these logos; a plain img avoids extra image-domain config.
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={team.logo} alt="" className="h-9 w-9 shrink-0 rounded-full border-2 border-neutral-900 bg-white" />
+        <img src={team.logo} alt="" className="h-8 w-8 shrink-0 rounded-full border-2 border-neutral-900 bg-white sm:h-9 sm:w-9" />
       ) : (
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-white text-xs">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-white text-xs sm:h-9 sm:w-9">
           {team.abbreviation}
         </span>
       )}
@@ -114,13 +114,13 @@ export function SportsApplet({
         <p className="text-sm text-neutral-900/60">Scores via ESPN</p>
       </header>
 
-      <div className="glass-track relative z-10 mt-6 inline-flex rounded-full p-1">
+      <div className="glass-track relative z-10 mt-6 flex w-full rounded-full p-1 sm:inline-flex sm:w-auto">
         {LEAGUES.map((item) => (
           <button
             key={item}
             type="button"
             onClick={() => chooseLeague(item)}
-            className={`rounded-full px-3 py-1.5 text-sm transition ${
+            className={`flex-1 rounded-full px-3 py-1.5 text-sm transition sm:flex-none ${
               league === item ? "glass-chip is-active" : "text-neutral-900/80"
             }`}
           >
@@ -172,7 +172,7 @@ export function SportsApplet({
                     {game.state === "pre" ? formatGameTime(game.date) : game.status}
                   </span>
                 </div>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
                   <TeamSide team={game.away} align="left" />
                   <p className="text-xs text-neutral-900/40">@</p>
                   <TeamSide team={game.home} align="right" />

@@ -707,6 +707,119 @@ html[data-theme="glass"] body {
   color: rgb(237 244 251 / 0.45);
 }
 
+/*
+ * Phone layout. The desktop board is a canvas of absolutely positioned, draggable
+ * windows; on a small screen that is unusable, so windows collapse into a single
+ * scrolling column and the launcher moves to a thumb-reachable dock.
+ * PlatformShell writes position and width as inline styles, hence the !important.
+ */
+@media (max-width: 767px) {
+  .home-board-page {
+    overflow-x: hidden;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .home-board-brand {
+    position: static;
+    margin: calc(0.75rem + env(safe-area-inset-top)) 0.75rem 0;
+    align-self: flex-start;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .home-board-banner {
+    position: static;
+    margin: 0.75rem 0.75rem 0;
+    max-width: none;
+  }
+
+  .board-canvas {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0;
+    overflow: visible;
+    padding: 1rem 0.75rem 0;
+  }
+
+  .board-window {
+    position: static;
+    width: auto !important;
+    max-height: none;
+    transform: none !important;
+  }
+
+  .board-window-titlebar {
+    cursor: default;
+    padding: 0.7rem 0.75rem 0.7rem 0.9rem;
+    touch-action: auto;
+  }
+
+  .board-window-close {
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1.4rem;
+  }
+
+  /* One page-level scroll instead of a scroll container per window. */
+  .board-window-body > .glass-scroll-viewport {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .board-window-body.has-y > .glass-scroll-viewport {
+    padding-right: 0;
+  }
+
+  .board-window-body > .glass-scroll-track--y {
+    display: none;
+  }
+
+  .board-window .weather-applet,
+  .board-window .stocks-applet,
+  .board-window .sports-applet,
+  .board-window .coming-soon-applet {
+    padding: 0.9rem 0.85rem 1.15rem;
+  }
+
+  .coming-soon-applet {
+    min-height: 0;
+  }
+
+  .board-launcher {
+    position: fixed;
+    top: auto;
+    left: 50%;
+    bottom: calc(0.85rem + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 60;
+  }
+
+  .board-launcher-items {
+    top: auto;
+    bottom: calc(100% + 0.6rem);
+    left: 50%;
+    align-items: center;
+    transform: translateX(-50%);
+  }
+
+  .board-launcher-toggle,
+  .board-launcher-item {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+
+  .board-launcher-settings {
+    width: 11rem;
+  }
+
+  /* Comfortable touch targets for the controls inside each applet. */
+  .board-window .glass-chip,
+  .board-window .glass-track button {
+    min-height: 2.5rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

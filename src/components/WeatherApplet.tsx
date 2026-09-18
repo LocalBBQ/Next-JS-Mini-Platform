@@ -266,7 +266,7 @@ export function WeatherApplet({
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-neutral-900/70">{placeLabel(weather.place)}</p>
-                <p className="mt-2 text-7xl font-light tracking-tight text-neutral-900 sm:text-8xl">
+                <p className="mt-2 text-6xl font-light tracking-tight text-neutral-900 sm:text-7xl md:text-8xl">
                   {formatTemp(weather.current.temperature, unit)}
                 </p>
                 <p className="mt-2 text-xl text-neutral-900/85">{condition.label}</p>
@@ -322,11 +322,13 @@ export function WeatherApplet({
                   key={day.date}
                   className="flex items-center justify-between py-3 text-sm text-neutral-900/85"
                 >
-                  <p className="w-16">{index === 0 ? "Today" : weekdayLabel(day.date)}</p>
-                  <p className="flex-1 text-neutral-900/60">
+                  <p className="w-14 shrink-0 sm:w-16">
+                    {index === 0 ? "Today" : weekdayLabel(day.date)}
+                  </p>
+                  <p className="min-w-0 flex-1 truncate px-2 text-neutral-900/60">
                     {describeWeather(day.weatherCode).label}
                   </p>
-                  <p className="w-28 text-right">
+                  <p className="w-24 shrink-0 text-right sm:w-28">
                     {formatTemp(day.temperatureMax, unit)} /{" "}
                     {formatTemp(day.temperatureMin, unit)}
                   </p>

@@ -230,7 +230,7 @@ export function StocksApplet({
                 <p className="text-neutral-900/70">
                   {quote.symbol} · {quote.name}
                 </p>
-                <p className="mt-2 text-7xl font-light tracking-tight text-neutral-900 sm:text-8xl">
+                <p className="mt-2 text-5xl font-light tracking-tight text-neutral-900 sm:text-7xl md:text-8xl">
                   {formatPrice(quote.price, quote.currency)}
                 </p>
                 <p className={`mt-2 text-xl ${up ? "text-emerald-700" : "text-rose-700"}`}>
@@ -259,13 +259,15 @@ export function StocksApplet({
                     }
                     className="flex w-full items-center justify-between py-3 text-left text-sm text-neutral-900/85 transition hover:text-neutral-900"
                   >
-                    <span className="w-20 font-medium">{item.symbol}</span>
-                    <span className="flex-1 truncate text-neutral-900/55">{displayName}</span>
-                    <span className="w-24 text-right">
+                    <span className="w-16 shrink-0 font-medium sm:w-20">{item.symbol}</span>
+                    <span className="hidden min-w-0 flex-1 truncate text-neutral-900/55 sm:block">
+                      {displayName}
+                    </span>
+                    <span className="ml-auto w-20 shrink-0 text-right sm:w-24">
                       {formatPrice(item.price, item.currency)}
                     </span>
                     <span
-                      className={`w-28 text-right ${
+                      className={`w-20 shrink-0 text-right sm:w-28 ${
                         itemUp ? "text-emerald-700" : "text-rose-700"
                       }`}
                     >

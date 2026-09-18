@@ -14,6 +14,8 @@ const STORAGE_KEY = "home-board-layout-v1";
 const THEME_KEY = "home-board-theme-v1";
 const CARD_WIDTH = 400;
 const CARD_MIN_VISIBLE = 72;
+// Matches the phone layout in globals.css, where windows stack instead of floating.
+const STACKED_QUERY = "(max-width: 767px)";
 
 type BoardTheme = "brutal" | "glass";
 
@@ -59,6 +61,10 @@ function mergeWindows(
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function isStacked() {
+  return window.matchMedia(STACKED_QUERY).matches;
 }
 
 function cardWidthFor(boardWidth: number) {
@@ -306,7 +312,7 @@ export function PlatformShell({
 
   const applyNodeLayout = useCallback((item: BoardWindowState) => {
     const node = windowNodes.current.get(item.id);
-    if (!node) return;
+    if (!node || isStacked()) return;
     node.style.transform = `translate3d(${item.x}px, ${item.y}px, 0)`;
     node.style.zIndex = String(item.z);
     node.style.width = `${cardWidthRef.current}px`;
@@ -382,7 +388,7 @@ export function PlatformShell({
   }, []);
 
   const onPointerDown = useCallback((event: PointerEvent<HTMLElement>, id: string) => {
-    if (event.button !== 0 || isInteractive(event.target)) return;
+    if (event.button !== 0 || isStacked() || isInteractive(event.target)) return;
     if (
       !(event.target instanceof Element) ||
       !event.target.closest(".board-window-titlebar")
