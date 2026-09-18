@@ -476,7 +476,7 @@ export function PlatformShell({
           className="board-launcher-toggle"
           aria-expanded={menuOpen}
           aria-controls="board-launcher-items"
-          aria-label={menuOpen ? "Close applet menu" : "Open applet menu"}
+          aria-label={menuOpen ? "Close board menu" : "Open board menu"}
           onClick={() => {
             setMenuOpen((open) => !open);
           }}

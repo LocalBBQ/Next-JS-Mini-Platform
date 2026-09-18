@@ -786,30 +786,58 @@ html[data-theme="glass"] body {
     min-height: 0;
   }
 
+  /*
+   * A persistent bottom bar rather than a floating button: applets are one tap
+   * away, and content scrolls behind an opaque bar instead of under a disc that
+   * covers whatever is beneath it.
+   */
   .board-launcher {
     position: fixed;
-    top: auto;
-    left: 50%;
-    bottom: calc(0.85rem + env(safe-area-inset-bottom));
-    transform: translateX(-50%);
+    inset: auto 0 0 0;
     z-index: 60;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 3px solid var(--ink);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
   }
 
   .board-launcher-items {
-    top: auto;
-    bottom: calc(100% + 0.6rem);
-    left: 50%;
-    align-items: center;
-    transform: translateX(-50%);
+    position: static;
+    order: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .board-launcher-item {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    transition: none;
+  }
+
+  .board-launcher-toggle {
+    order: 2;
   }
 
   .board-launcher-toggle,
   .board-launcher-item {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 3rem;
+    height: 3rem;
   }
 
+  /* Only the theme panel stays behind the toggle, floating above the bar. */
   .board-launcher-settings {
+    position: absolute;
+    right: 0.75rem;
+    bottom: calc(100% + 0.5rem);
     width: 11rem;
   }
 
