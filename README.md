@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Home Board
 
-## Getting Started
+A personal applet board built with **Next.js**, **Sanity**, and **Vercel**. Weather, stocks, and sports are live.
 
-First, run the development server:
+## What each piece does
+
+- **Next.js** is the website. It renders Home Board, serves `/api/weather`, `/api/geocode`, `/api/stocks`, and `/api/sports`, and embeds Sanity Studio at `/studio`.
+- **Sanity** is the CMS catalog. It stores the board title, which applets exist, and editorial defaults (cities, tickers, featured teams).
+- **Vercel** hosts the Next.js app. One deploy gives you the public board and the Studio.
+
+Live data does **not** live in Sanity:
+
+- Weather conditions come from Open-Meteo.
+- Stock quotes come from Yahoo Finance.
+- Sports scores come from ESPN.
+
+If Sanity is not connected yet, the app falls back to a weather / stocks / sports catalog and still fetches live data.
+
+## Local setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Use the right-hand catalog to switch applets.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Connect Sanity
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SANITY_PROJECT_ID`.
+2. Restart `npm run dev`.
+3. In the Sanity project CORS settings, add `http://localhost:3000` with credentials allowed.
+4. Open [http://localhost:3000/studio](http://localhost:3000/studio).
+5. Add **Platform settings**, then:
+   - Applets with `kind` of `weather`, `stocks`, or `sports` and `status: live`
+   - Weather locations (city, state/region, country, lat/lng)
+   - Stock tickers
+   - Sports teams (`nba`, `nfl`, `mlb`, or `nhl`)
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push this repo and import it in [Vercel](https://vercel.com/new).
+2. Add the same Sanity env vars in the Vercel project settings.
+3. Add your Vercel URL as a Sanity CORS origin, for example `https://your-app.vercel.app`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+After deploy, the board is `/` and Studio is `/studio`.

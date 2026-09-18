@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffd400;
+  --foreground: #161616;
+  --ink: #161616;
+  --paper: #fff6ea;
+  --paper-2: #ffe7b8;
+  --punch: #ffd400;
+  --offset: 4px 4px 0 #161616;
 }
 
 @theme inline {
@@ -12,15 +17,704 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color-scheme: light;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.home-board-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+  background-color: #ffd400;
+  background-image: radial-gradient(#161616 1.15px, transparent 1.25px);
+  background-size: 18px 18px;
+}
+
+.home-board-brand,
+.board-window,
+.home-board-banner {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: var(--offset);
+}
+
+.home-board-brand {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  z-index: 41;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0.45rem 0.28rem 0.28rem;
+  border-radius: 999px;
+  color: var(--ink);
+}
+
+.home-board-logo {
+  display: block;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex-shrink: 0;
+}
+
+.home-board-brand h1 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.home-board-studio {
+  margin-left: 0.1rem;
+  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+  background: var(--punch);
+  border: 2.5px solid var(--ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.home-board-studio:hover {
+  background: #fff;
+}
+
+.home-board-banner {
+  position: absolute;
+  top: 4.15rem;
+  right: 1rem;
+  z-index: 30;
+  margin: 0;
+  max-width: 16rem;
+  border-radius: 1rem;
+  background: #9ad6ff;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+
+.board-canvas {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 68dvh;
+  overflow: hidden;
+}
+
+.board-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: min(62vh, 620px);
+  overflow: hidden;
+  border-radius: 1.35rem;
+}
+
+.board-window.is-entering {
+  animation: board-window-enter 260ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.board-window.is-dragging {
+  cursor: grabbing;
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+@keyframes board-window-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.board-window-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem 0.55rem 0.85rem;
+  color: var(--ink);
+  background: var(--paper-2);
+  border-bottom: 3px solid var(--ink);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.board-window.is-dragging .board-window-titlebar {
+  cursor: grabbing;
+}
+
+.board-window-titlebar h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.board-window-close {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--punch);
+  border: 3px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  line-height: 1;
+  font-size: 1.15rem;
+}
+
+.board-window-close:hover {
+  background: #fff;
+}
+
+.board-window-body {
+  flex: 1;
+  min-height: 0;
+  background: transparent;
+}
+
+.glass-scroll {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-scroll--x {
+  flex: none;
+  display: block;
+}
+
+.glass-scroll-viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.glass-scroll--x .glass-scroll-viewport {
+  flex: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.glass-scroll-viewport::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.glass-scroll-track {
+  position: absolute;
+  z-index: 4;
+  border-radius: 8px;
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.glass-scroll-track--y {
+  top: 0.55rem;
+  right: 0.4rem;
+  bottom: 0.55rem;
+  width: 0.7rem;
+}
+
+.glass-scroll-track--x {
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.4rem;
+  height: 0.7rem;
+}
+
+.glass-scroll.has-x .glass-scroll-track--y {
+  bottom: 1.15rem;
+}
+
+.glass-scroll.has-y .glass-scroll-viewport {
+  padding-right: 1rem;
+}
+
+.glass-scroll.has-x .glass-scroll-viewport {
+  padding-bottom: 1rem;
+}
+
+.glass-scroll.has-y .glass-scroll-track--x {
+  right: 1.15rem;
+}
+
+.glass-scroll-thumb {
+  position: absolute;
+  border-radius: 6px;
+  background: var(--punch);
+  border: 2.5px solid var(--ink);
+}
+
+.glass-scroll-thumb--y {
+  left: 1px;
+  right: 1px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.glass-scroll-thumb--x {
+  top: 1px;
+  bottom: 1px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.board-window .weather-applet,
+.board-window .stocks-applet,
+.board-window .sports-applet,
+.board-window .coming-soon-applet {
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 0;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.board-window .applet-kicker {
+  display: none;
+}
+
+.board-window .weather-applet h2,
+.board-window .stocks-applet h2,
+.board-window .sports-applet h2,
+.board-window .coming-soon-applet h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.board-launcher {
+  position: absolute;
+  top: 4.15rem;
+  left: 1rem;
+  z-index: 40;
+}
+
+.board-launcher-toggle,
+.board-launcher-item {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--punch);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.board-launcher-toggle:hover,
+.board-launcher-item:hover {
+  background: #fff;
+}
+
+.board-launcher-item.is-open {
+  background: var(--punch);
+}
+
+.board-launcher-items {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.board-launcher-item,
+.board-launcher-settings {
+  background: #fff;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.72) translateY(-8px);
+  transition:
+    opacity 180ms cubic-bezier(0.4, 0, 1, 1),
+    transform 180ms cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s 180ms;
+}
+
+.board-launcher.is-open .board-launcher-item,
+.board-launcher.is-open .board-launcher-settings {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity 220ms cubic-bezier(0, 0, 0.2, 1),
+    transform 240ms cubic-bezier(0, 0, 0.2, 1),
+    visibility 0s;
+}
+
+.board-launcher.is-open .board-launcher-item:nth-child(1) {
+  transition-delay: 30ms;
+}
+
+.board-launcher.is-open .board-launcher-item:nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.board-launcher.is-open .board-launcher-item:nth-child(3) {
+  transition-delay: 90ms;
+}
+
+.board-launcher.is-open .board-launcher-item:nth-child(4) {
+  transition-delay: 120ms;
+}
+
+.board-launcher.is-open .board-launcher-settings {
+  transition-delay: 150ms;
+}
+
+.board-launcher-settings {
+  width: 8.5rem;
+  padding: 0.65rem;
+  border-radius: 1.1rem;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.glass-button,
+.glass-chip,
+.glass-track,
+.glass-input,
+.glass-menu,
+.glass-card {
+  color: var(--ink);
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.glass-button:hover,
+.glass-chip:hover,
+.board-window-close:hover {
+  background: #fff;
+}
+
+.glass-chip.is-active,
+.glass-card.is-featured {
+  background: var(--punch);
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.glass-button {
+  background: var(--punch);
+}
+
+.glass-input {
+  background: #fff;
+}
+
+.glass-input::placeholder {
+  color: rgb(22 22 22 / 0.45);
+}
+
+.glass-menu {
+  background: var(--paper);
+}
+
+.weather-applet,
+.stocks-applet,
+.sports-applet,
+.coming-soon-applet {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 1.75rem;
+  color: var(--ink);
+  isolation: isolate;
+}
+
+.weather-atmosphere {
+  display: none;
+}
+
+.weather-applet--clear {
+  background: #ffe566;
+}
+
+.weather-applet--night {
+  background: #d4c7ff;
+}
+
+.weather-applet--cloudy,
+.weather-applet--fog {
+  background: #efe4d4;
+}
+
+.weather-applet--rain {
+  background: #9ad6ff;
+}
+
+.weather-applet--snow {
+  background: #eef6ff;
+}
+
+.weather-applet--storm {
+  background: #cbb6ff;
+}
+
+.stocks-applet--up {
+  background: #b8f0c8;
+}
+
+.stocks-applet--down {
+  background: #ffb3a8;
+}
+
+.sports-applet--nba {
+  background: #ffd4b8;
+}
+
+.sports-applet--nfl {
+  background: #b8e0c8;
+}
+
+.sports-applet--mlb {
+  background: #ffc8c8;
+}
+
+.sports-applet--nhl {
+  background: #c8e8f0;
+}
+
+.coming-soon-applet {
+  background: var(--paper-2);
+  min-height: 22rem;
+}
+
+.applet-stage {
+  animation: applet-enter 280ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes applet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.board-settings-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.theme-switch {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+}
+
+.theme-switch button {
+  border-radius: 999px;
+  padding: 0.45rem 0.5rem;
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.theme-switch button.is-active {
+  background: var(--punch);
+}
+
+html[data-theme="glass"] {
+  --background: #090e16;
+  --foreground: #edf4fb;
+  --ink: #edf4fb;
+  --paper: rgba(255, 255, 255, 0.1);
+  --paper-2: rgba(255, 255, 255, 0.14);
+  --punch: rgba(255, 255, 255, 0.22);
+  --offset: 0 18px 50px rgba(4, 10, 24, 0.35);
+  color-scheme: dark;
+}
+
+html[data-theme="glass"] body {
+  color-scheme: dark;
+}
+
+[data-theme="glass"].home-board-page {
+  background-color: #090e16;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.05), transparent 52%),
+    linear-gradient(180deg, #090e16 0%, #0b1118 100%);
+}
+
+[data-theme="glass"] .home-board-brand,
+[data-theme="glass"] .board-window,
+[data-theme="glass"] .home-board-banner,
+[data-theme="glass"] .board-launcher-settings,
+[data-theme="glass"] .board-launcher-toggle,
+[data-theme="glass"] .board-launcher-item,
+[data-theme="glass"] .home-board-studio,
+[data-theme="glass"] .theme-switch button,
+[data-theme="glass"] .glass-chip,
+[data-theme="glass"] .glass-track,
+[data-theme="glass"] .glass-input,
+[data-theme="glass"] .glass-menu,
+[data-theme="glass"] .glass-card,
+[data-theme="glass"] .glass-button,
+[data-theme="glass"] .board-window-close {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: var(--offset), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+}
+
+[data-theme="glass"] .board-window {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="glass"] .board-window-titlebar {
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="glass"] .board-window.is-dragging {
+  box-shadow: 0 28px 70px rgba(4, 10, 24, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+[data-theme="glass"] .home-board-banner {
+  background: rgba(14, 165, 233, 0.18);
+  color: #e0f2fe;
+}
+
+[data-theme="glass"] .theme-switch button.is-active,
+[data-theme="glass"] .glass-chip.is-active,
+[data-theme="glass"] .glass-card.is-featured,
+[data-theme="glass"] .board-launcher-item.is-open {
+  background: rgba(255, 255, 255, 0.86);
+  color: #0f172a;
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+}
+
+[data-theme="glass"] .glass-scroll-thumb {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+}
+
+[data-theme="glass"] .weather-atmosphere {
+  display: block;
+}
+
+[data-theme="glass"] .weather-applet,
+[data-theme="glass"] .stocks-applet,
+[data-theme="glass"] .sports-applet,
+[data-theme="glass"] .coming-soon-applet {
+  color: #edf4fb;
+}
+
+[data-theme="glass"] .weather-applet--clear {
+  background: linear-gradient(160deg, rgba(59, 130, 246, 0.34), rgba(56, 189, 248, 0.16));
+}
+[data-theme="glass"] .weather-applet--night {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.28), rgba(49, 46, 129, 0.32));
+}
+[data-theme="glass"] .weather-applet--cloudy,
+[data-theme="glass"] .weather-applet--fog {
+  background: linear-gradient(160deg, rgba(51, 65, 85, 0.32), rgba(100, 116, 139, 0.22));
+}
+[data-theme="glass"] .weather-applet--rain {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.3), rgba(29, 78, 216, 0.28));
+}
+[data-theme="glass"] .weather-applet--snow {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.26), rgba(148, 163, 184, 0.2));
+}
+[data-theme="glass"] .weather-applet--storm {
+  background: linear-gradient(160deg, rgba(2, 6, 23, 0.32), rgba(76, 29, 149, 0.3));
+}
+[data-theme="glass"] .stocks-applet--up {
+  background: linear-gradient(160deg, rgba(2, 44, 34, 0.28), rgba(16, 185, 129, 0.22));
+}
+[data-theme="glass"] .stocks-applet--down {
+  background: linear-gradient(160deg, rgba(28, 25, 23, 0.26), rgba(220, 38, 38, 0.22));
+}
+[data-theme="glass"] .sports-applet--nba {
+  background: linear-gradient(160deg, rgba(30, 58, 138, 0.3), rgba(194, 65, 12, 0.2));
+}
+[data-theme="glass"] .sports-applet--nfl {
+  background: linear-gradient(160deg, rgba(20, 83, 45, 0.3), rgba(30, 58, 138, 0.22));
+}
+[data-theme="glass"] .sports-applet--mlb {
+  background: linear-gradient(160deg, rgba(30, 58, 138, 0.3), rgba(153, 27, 27, 0.22));
+}
+[data-theme="glass"] .sports-applet--nhl {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.26), rgba(14, 116, 144, 0.26));
+}
+[data-theme="glass"] .coming-soon-applet {
+  background: linear-gradient(160deg, rgba(30, 41, 59, 0.28), rgba(51, 65, 85, 0.2));
+}
+
+[data-theme="glass"] .board-window .text-neutral-900,
+[data-theme="glass"] .board-window .text-neutral-900\/80,
+[data-theme="glass"] .board-window .text-neutral-900\/85,
+[data-theme="glass"] .board-window .text-neutral-900\/90 {
+  color: #edf4fb !important;
+}
+
+[data-theme="glass"] .board-window .text-neutral-900\/40,
+[data-theme="glass"] .board-window .text-neutral-900\/45,
+[data-theme="glass"] .board-window .text-neutral-900\/50,
+[data-theme="glass"] .board-window .text-neutral-900\/55,
+[data-theme="glass"] .board-window .text-neutral-900\/60,
+[data-theme="glass"] .board-window .text-neutral-900\/70,
+[data-theme="glass"] .board-window .text-neutral-900\/75 {
+  color: rgb(237 244 251 / 0.62) !important;
+}
+
+[data-theme="glass"] .board-window .text-emerald-700 {
+  color: #bbf7d0 !important;
+}
+
+[data-theme="glass"] .board-window .text-rose-700 {
+  color: #fecaca !important;
+}
+
+[data-theme="glass"] .hover\:bg-yellow-300:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="glass"] .glass-input::placeholder {
+  color: rgb(237 244 251 / 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-timeline: auto !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
