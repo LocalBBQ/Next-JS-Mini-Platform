@@ -841,6 +841,13 @@ html[data-theme="glass"] body {
     width: 11rem;
   }
 
+  /* --paper is near-transparent under the glass theme, which leaves the bar as a
+     bright hairline over scrolling content. */
+  [data-theme="glass"] .board-launcher {
+    background: rgba(12, 18, 28, 0.62);
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
   /* Comfortable touch targets for the controls inside each applet. */
   .board-window .glass-chip,
   .board-window .glass-track button {
