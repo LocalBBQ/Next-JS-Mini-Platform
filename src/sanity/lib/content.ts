@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { fallbackContent } from "@/lib/fallback-content";
+import { fallbackContent, SETTINGS_APPLET } from "@/lib/fallback-content";
 import type {
   Applet,
   AppletKind,
@@ -52,10 +52,31 @@ type SanityPayload = {
 };
 
 function readKind(kind: string | null | undefined): AppletKind {
-  if (kind === "weather" || kind === "stocks" || kind === "sports") {
+  if (
+    kind === "weather" ||
+    kind === "stocks" ||
+    kind === "sports" ||
+    kind === "settings"
+  ) {
     return kind;
   }
   return "placeholder";
+}
+
+function withSettingsApplet(applets: Applet[]): Applet[] {
+  const rest = applets.filter(
+    (applet) => applet.kind !== "settings" && applet.slug !== "settings",
+  );
+  const fromCatalog = applets.find(
+    (applet) => applet.kind === "settings" || applet.slug === "settings",
+  );
+
+  return [
+    ...rest,
+    fromCatalog
+      ? { ...fromCatalog, kind: "settings", status: "live" }
+      : SETTINGS_APPLET,
+  ];
 }
 
 function readLeague(league: string | null | undefined): SportsLeague | null {
@@ -132,7 +153,9 @@ function normalize(payload: SanityPayload | null): PlatformContent | null {
       footerNote:
         payload.settings?.footerNote || fallbackContent.settings.footerNote,
     },
-    applets: applets.length > 0 ? applets : fallbackContent.applets,
+    applets: withSettingsApplet(
+      applets.length > 0 ? applets : fallbackContent.applets,
+    ),
     locations: locations.length > 0 ? locations : fallbackContent.locations,
     tickers: tickers.length > 0 ? tickers : fallbackContent.tickers,
     teams: teams.length > 0 ? teams : fallbackContent.teams,

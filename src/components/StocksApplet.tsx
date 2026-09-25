@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PinChip, PinToggle } from "@/components/PinControls";
+import { tickerKey, useBoardPins } from "@/lib/board-pins";
 import { formatChange, formatPrice } from "@/lib/stocks";
 import type { StockQuote, StockTicker } from "@/lib/types";
 
@@ -45,8 +47,12 @@ export function StocksApplet({
   title?: string;
   tickers: StockTicker[];
 }) {
-  const defaultTicker = tickers.find((ticker) => ticker.isDefault) ?? tickers[0];
-  const [selected, setSelected] = useState<StockTicker | null>(defaultTicker ?? null);
+  const pins = useBoardPins();
+  const personal = pins.personal;
+  const chips = personal ? pins.tickers : tickers;
+  const [selected, setSelected] = useState<StockTicker | null>(
+    personal ? null : (tickers.find((ticker) => ticker.isDefault) ?? tickers[0] ?? null),
+  );
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<StockTicker[]>([]);
@@ -56,17 +62,27 @@ export function StocksApplet({
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!pins.ready) return;
+    const fallback = personal ? pins.tickers : tickers;
+    setSelected((current) => {
+      if (current) return current;
+      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
+    });
+  }, [pins.ready, personal, pins.tickers, tickers]);
+
+  useEffect(() => {
     const symbols = [
       ...new Set(
-        [selected?.symbol, ...tickers.map((ticker) => ticker.symbol)].filter(
-          Boolean,
-        ) as string[],
+        [selected?.symbol, ...chips.map((ticker) => ticker.symbol)].filter(Boolean) as string[],
       ),
     ];
 
+    if (personal && !pins.ready) return;
+
     if (symbols.length === 0) {
-      setStatus("error");
-      setMessage("Add a stock ticker in Studio to start this applet.");
+      setQuotes([]);
+      setStatus("ready");
+      setMessage("");
       return;
     }
 
@@ -97,7 +113,7 @@ export function StocksApplet({
 
     void load();
     return () => controller.abort();
-  }, [selected?.symbol, tickers]);
+  }, [selected?.symbol, chips, personal, pins.ready]);
 
   useEffect(() => {
     if (query.trim().length < 1) {
@@ -141,9 +157,9 @@ export function StocksApplet({
   const quote = useMemo(() => {
     const match = quotes.find((item) => item.symbol === selected?.symbol) ?? quotes[0];
     if (!match) return null;
-    const named = tickers.find((ticker) => ticker.symbol === match.symbol);
+    const named = chips.find((ticker) => ticker.symbol === match.symbol);
     return { ...match, name: named?.name || match.name };
-  }, [quotes, selected, tickers]);
+  }, [quotes, selected, chips]);
   const up = (quote?.change ?? 0) >= 0;
 
   function chooseTicker(next: StockTicker) {
@@ -184,38 +200,59 @@ export function StocksApplet({
         />
         {open && suggestions.length > 0 ? (
           <ul className="glass-menu absolute top-full z-30 mt-2 w-full overflow-hidden rounded-2xl">
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.symbol}>
+            {suggestions.map((suggestion) => {
+              const pinned = pins.tickers.some((item) => tickerKey(item) === tickerKey(suggestion));
+              return (
+              <li key={suggestion.symbol} className="flex items-center gap-2 px-2 py-1">
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-neutral-900/90 transition hover:bg-yellow-300"
+                  className="flex min-w-0 flex-1 items-center justify-between px-2 py-2 text-left text-sm text-neutral-900/90 transition hover:bg-yellow-300"
                   onClick={() => chooseTicker(suggestion)}
                 >
                   <span className="font-medium">{suggestion.symbol}</span>
-                  <span className="text-neutral-900/55">{suggestion.name}</span>
+                  <span className="truncate pl-3 text-neutral-900/55">{suggestion.name}</span>
                 </button>
+                <PinToggle
+                  pinned={pinned}
+                  label={suggestion.symbol}
+                  disabled={pins.saving}
+                  onToggle={() =>
+                    pinned ? pins.unpinTicker(suggestion) : pins.pinTicker(suggestion)
+                  }
+                />
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : null}
       </div>
 
+      {selected && !pins.tickers.some((item) => tickerKey(item) === tickerKey(selected)) ? (
+        <div className="relative z-10 mt-4">
+          <PinToggle
+            pinned={false}
+            label={selected.symbol}
+            disabled={pins.saving || (personal && !pins.ready)}
+            onToggle={() => pins.pinTicker(selected)}
+          />
+        </div>
+      ) : null}
+
+      {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
+
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {tickers.map((item) => {
-          const active = item.symbol === selected?.symbol;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => chooseTicker(item)}
-              className={`glass-chip rounded-full px-3 py-1.5 text-sm transition ${
-                active ? "is-active" : "text-neutral-900/85 hover:bg-yellow-300"
-              }`}
-            >
-              {item.symbol}
-            </button>
-          );
-        })}
+        {personal && !pins.ready ? (
+          <p className="text-sm text-neutral-900/60">Loading your stocks…</p>
+        ) : null}
+        {chips.map((item) => (
+          <PinChip
+            key={item.id}
+            active={tickerKey(item) === (selected ? tickerKey(selected) : "")}
+            label={item.symbol}
+            onOpen={() => chooseTicker(item)}
+            onUnpin={personal ? () => pins.unpinTicker(item) : undefined}
+          />
+        ))}
       </div>
 
       <div className="relative z-10 mt-8 min-h-48">
@@ -223,6 +260,9 @@ export function StocksApplet({
           <p className="text-neutral-900/70">Fetching the latest quotes…</p>
         ) : null}
         {status === "error" ? <p className="text-amber-800">{message}</p> : null}
+        {status === "ready" && !quote && personal && pins.ready && pins.tickers.length === 0 ? (
+          <p className="text-neutral-900/70">Search for a stock and pin it to this board.</p>
+        ) : null}
         {status === "ready" && quote ? (
           <>
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -244,7 +284,7 @@ export function StocksApplet({
               {quotes.map((item) => {
                 const itemUp = item.change >= 0;
                 const displayName =
-                  tickers.find((ticker) => ticker.symbol === item.symbol)?.name ||
+                  chips.find((ticker) => ticker.symbol === item.symbol)?.name ||
                   item.name;
                 return (
                   <button

@@ -3,8 +3,6 @@ import config from "../../../../sanity.config";
 import { StudioSetup } from "@/components/StudioSetup";
 import { isSanityConfigured } from "@/sanity/env";
 
-export const dynamic = "force-static";
-
 export { metadata, viewport } from "next-sanity/studio";
 
 export default function StudioPage() {

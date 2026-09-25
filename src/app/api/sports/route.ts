@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { jsonError } from "@/lib/route";
 import { isSportsLeague, parseScoreboard, scoreboardUrl } from "@/lib/sports";
 import type { SportsTeam } from "@/lib/types";
 
@@ -6,10 +7,7 @@ export async function GET(request: NextRequest) {
   const leagueParam = request.nextUrl.searchParams.get("league")?.trim().toLowerCase() || "nba";
 
   if (!isSportsLeague(leagueParam)) {
-    return NextResponse.json(
-      { error: "league must be nba, nfl, mlb, or nhl." },
-      { status: 400 },
-    );
+    return jsonError("league must be nba, nfl, mlb, or nhl.", 400);
   }
 
   const featuredAbbr = request.nextUrl.searchParams.get("team")?.trim().toUpperCase() || "";
@@ -22,20 +20,21 @@ export async function GET(request: NextRequest) {
       }
     : null;
 
-  const response = await fetch(scoreboardUrl(leagueParam), {
-    next: { revalidate: 60, tags: ["sports"] },
-  });
+  try {
+    const response = await fetch(scoreboardUrl(leagueParam), {
+      next: { revalidate: 60, tags: ["sports"] },
+    });
 
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: "Could not load that scoreboard." },
-      { status: 502 },
-    );
+    if (!response.ok) {
+      return jsonError("Could not load that scoreboard.", 502);
+    }
+
+    const payload = await response.json();
+    return Response.json({
+      league: leagueParam,
+      games: parseScoreboard(payload, featured),
+    });
+  } catch {
+    return jsonError("Could not load that scoreboard.", 502);
   }
-
-  const payload = await response.json();
-  return NextResponse.json({
-    league: leagueParam,
-    games: parseScoreboard(payload, featured),
-  });
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { jsonError } from "@/lib/route";
 import { forecastUrl, parseForecast } from "@/lib/weather";
 
 function readNumber(value: string | null) {
@@ -16,27 +17,20 @@ export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id")?.trim() || `${latitude},${longitude}`;
 
   if (latitude === null || longitude === null) {
-    return NextResponse.json(
-      { error: "latitude and longitude are required." },
-      { status: 400 },
-    );
+    return jsonError("latitude and longitude are required.", 400);
   }
-
-  const response = await fetch(forecastUrl(latitude, longitude), {
-    next: { revalidate: 300, tags: ["weather"] },
-  });
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: "Could not load weather for that location." },
-      { status: 502 },
-    );
-  }
-
-  const payload = await response.json();
 
   try {
-    return NextResponse.json(
+    const response = await fetch(forecastUrl(latitude, longitude), {
+      next: { revalidate: 300, tags: ["weather"] },
+    });
+
+    if (!response.ok) {
+      return jsonError("Could not load weather for that location.", 502);
+    }
+
+    const payload = await response.json();
+    return Response.json(
       parseForecast(payload, {
         id,
         name,
@@ -47,9 +41,6 @@ export async function GET(request: NextRequest) {
       }),
     );
   } catch {
-    return NextResponse.json(
-      { error: "Weather payload was incomplete." },
-      { status: 502 },
-    );
+    return jsonError("Could not load weather for that location.", 502);
   }
 }

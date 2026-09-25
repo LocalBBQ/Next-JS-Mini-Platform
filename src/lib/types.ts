@@ -1,4 +1,9 @@
-export type AppletKind = "weather" | "stocks" | "sports" | "placeholder";
+export type AppletKind = "weather" | "stocks" | "sports" | "settings" | "placeholder";
+export type BoardTheme = "brutal" | "glass" | "runner";
+
+export function isBoardTheme(value: string | null): value is BoardTheme {
+  return value === "brutal" || value === "glass" || value === "runner";
+}
 export type AppletStatus = "live" | "comingSoon";
 export type SportsLeague = "nba" | "nfl" | "mlb" | "nhl";
 
@@ -50,6 +55,22 @@ export type PlatformContent = {
   tickers: StockTicker[];
   teams: SportsTeam[];
   fromSanity: boolean;
+};
+
+export type BoardUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
+export type UserBoard = {
+  userId: string;
+  locations: WeatherPlace[];
+  tickers: StockTicker[];
+  teams: SportsTeam[];
+  note: string;
+  updatedAt: string;
 };
 
 export type WeatherSnapshot = {

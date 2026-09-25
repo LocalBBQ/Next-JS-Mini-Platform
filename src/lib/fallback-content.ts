@@ -6,6 +6,16 @@ import type {
   WeatherPlace,
 } from "@/lib/types";
 
+export const SETTINGS_APPLET: Applet = {
+  _id: "settings",
+  title: "Settings",
+  slug: "settings",
+  icon: "⚙️",
+  description: "Board appearance and preferences.",
+  kind: "settings",
+  status: "live",
+};
+
 export const fallbackContent: PlatformContent = {
   settings: {
     title: "Home Board",
@@ -41,6 +51,7 @@ export const fallbackContent: PlatformContent = {
       kind: "sports",
       status: "live",
     },
+    SETTINGS_APPLET,
   ] satisfies Applet[],
   locations: [
     {

@@ -35,7 +35,6 @@ body {
   background-size: 18px 18px;
 }
 
-.home-board-brand,
 .board-window,
 .home-board-banner {
   background: var(--paper);
@@ -43,32 +42,14 @@ body {
   box-shadow: var(--offset);
 }
 
-.home-board-brand {
+.home-board-tools {
   position: absolute;
   top: 0.85rem;
-  left: 1rem;
+  right: 1rem;
   z-index: 41;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.28rem 0.45rem 0.28rem 0.28rem;
-  border-radius: 999px;
-  color: var(--ink);
-}
-
-.home-board-logo {
-  display: block;
-  width: 1.9rem;
-  height: 1.9rem;
-  flex-shrink: 0;
-}
-
-.home-board-brand h1 {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1;
 }
 
 .home-board-studio {
@@ -86,6 +67,16 @@ body {
   background: #fff;
 }
 
+.home-board-user {
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .home-board-banner {
   position: absolute;
   top: 4.15rem;
@@ -98,6 +89,52 @@ body {
   padding: 0.45rem 0.7rem;
   font-size: 0.75rem;
   color: var(--ink);
+}
+
+.route-status {
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.route-status-card {
+  margin: 0;
+  max-width: 22rem;
+  border-radius: 1.1rem;
+  padding: 1.15rem 1.3rem;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: var(--offset);
+  text-align: center;
+}
+
+.route-status-card h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.route-status-card p {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+}
+
+.route-status-action {
+  display: inline-block;
+  margin-top: 1rem;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  background: var(--punch);
+  border: 2.5px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.route-status-action:hover {
+  background: #fff;
 }
 
 .board-canvas {
@@ -163,17 +200,23 @@ body {
 .board-window-close {
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--ink);
-  background: var(--punch);
-  border: 3px solid var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
+  cursor: pointer;
   line-height: 1;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
+  font-weight: 500;
 }
 
 .board-window-close:hover {
-  background: #fff;
+  background: transparent;
+  opacity: 0.55;
 }
 
 .board-window-body {
@@ -278,6 +321,7 @@ body {
 .board-window .weather-applet,
 .board-window .stocks-applet,
 .board-window .sports-applet,
+.board-window .settings-applet,
 .board-window .coming-soon-applet {
   border-radius: 0;
   box-shadow: none;
@@ -292,6 +336,7 @@ body {
 .board-window .weather-applet h2,
 .board-window .stocks-applet h2,
 .board-window .sports-applet h2,
+.board-window .settings-applet h2,
 .board-window .coming-soon-applet h2 {
   position: absolute;
   width: 1px;
@@ -302,7 +347,7 @@ body {
 
 .board-launcher {
   position: absolute;
-  top: 4.15rem;
+  top: 0.85rem;
   left: 1rem;
   z-index: 40;
 }
@@ -338,8 +383,7 @@ body {
   gap: 0.5rem;
 }
 
-.board-launcher-item,
-.board-launcher-settings {
+.board-launcher-item {
   background: #fff;
   opacity: 0;
   visibility: hidden;
@@ -351,8 +395,7 @@ body {
     visibility 0s 180ms;
 }
 
-.board-launcher.is-open .board-launcher-item,
-.board-launcher.is-open .board-launcher-settings {
+.board-launcher.is-open .board-launcher-item {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -379,19 +422,6 @@ body {
   transition-delay: 120ms;
 }
 
-.board-launcher.is-open .board-launcher-settings {
-  transition-delay: 150ms;
-}
-
-.board-launcher-settings {
-  width: 8.5rem;
-  padding: 0.65rem;
-  border-radius: 1.1rem;
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
-}
-
 .glass-button,
 .glass-chip,
 .glass-track,
@@ -405,8 +435,7 @@ body {
 }
 
 .glass-button:hover,
-.glass-chip:hover,
-.board-window-close:hover {
+.glass-chip:hover {
   background: #fff;
 }
 
@@ -436,6 +465,7 @@ body {
 .weather-applet,
 .stocks-applet,
 .sports-applet,
+.settings-applet,
 .coming-soon-applet {
   position: relative;
   overflow: hidden;
@@ -474,6 +504,31 @@ body {
   background: #cbb6ff;
 }
 
+.weather-daily-forecast {
+  margin-top: 1.5rem;
+}
+
+.weather-hourly-scroll.has-x .glass-scroll-viewport {
+  padding-bottom: 2.4rem;
+}
+
+.weather-hourly-scroll.has-x .glass-scroll-track--x {
+  bottom: 0.85rem;
+}
+
+.weather-hourly-scroll.has-x + .weather-daily-forecast {
+  margin-top: 0;
+}
+
+.weather-emoji {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
+    "Twemoji Mozilla", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-variant-emoji: emoji;
+  line-height: 1;
+}
+
 .stocks-applet--up {
   background: #b8f0c8;
 }
@@ -498,6 +553,10 @@ body {
   background: #c8e8f0;
 }
 
+.settings-applet {
+  background: #efe4d4;
+}
+
 .coming-soon-applet {
   background: var(--paper-2);
   min-height: 22rem;
@@ -518,42 +577,24 @@ body {
   }
 }
 
-.board-settings-label {
-  margin: 0 0 0.55rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.theme-switch {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.35rem;
-}
-
-.theme-switch button {
-  border-radius: 999px;
-  padding: 0.45rem 0.5rem;
-  background: #fff;
-  border: 2.5px solid var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.theme-switch button.is-active {
-  background: var(--punch);
-}
-
 html[data-theme="glass"] {
-  --background: #090e16;
-  --foreground: #edf4fb;
-  --ink: #edf4fb;
-  --paper: rgba(255, 255, 255, 0.1);
-  --paper-2: rgba(255, 255, 255, 0.14);
-  --punch: rgba(255, 255, 255, 0.22);
-  --offset: 0 18px 50px rgba(4, 10, 24, 0.35);
+  --background: #141a24;
+  --foreground: #eef3f8;
+  --ink: #eef3f8;
+  --paper: rgba(22, 28, 38, 0.9);
+  --paper-2: rgba(28, 36, 48, 0.94);
+  --punch: rgba(255, 255, 255, 0.16);
+  --offset:
+    0 18px 40px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.18);
+  --glass-rim: rgba(255, 255, 255, 0.16);
+  --glass-fill: linear-gradient(
+    165deg,
+    rgba(78, 92, 112, 0.86) 0%,
+    rgba(24, 30, 42, 0.94) 100%
+  );
   color-scheme: dark;
 }
 
@@ -561,124 +602,164 @@ html[data-theme="glass"] body {
   color-scheme: dark;
 }
 
+html[data-theme="glass"] .home-board-page,
 [data-theme="glass"].home-board-page {
-  background-color: #090e16;
-  background-image:
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255, 255, 255, 0.05), transparent 52%),
-    linear-gradient(180deg, #090e16 0%, #0b1118 100%);
+  background-color: #141a24;
+  background-image: linear-gradient(165deg, #2a3548 0%, #161c28 48%, #0c1018 100%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
-[data-theme="glass"] .home-board-brand,
 [data-theme="glass"] .board-window,
 [data-theme="glass"] .home-board-banner,
-[data-theme="glass"] .board-launcher-settings,
-[data-theme="glass"] .board-launcher-toggle,
-[data-theme="glass"] .board-launcher-item,
-[data-theme="glass"] .home-board-studio,
-[data-theme="glass"] .theme-switch button,
-[data-theme="glass"] .glass-chip,
-[data-theme="glass"] .glass-track,
-[data-theme="glass"] .glass-input,
 [data-theme="glass"] .glass-menu,
-[data-theme="glass"] .glass-card,
-[data-theme="glass"] .glass-button,
-[data-theme="glass"] .board-window-close {
+[data-theme="glass"] .route-status-card,
+[data-theme="glass"] .route-status-action {
   border-width: 1px;
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: var(--offset), inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(22px) saturate(1.5);
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border-color: var(--glass-rim);
+  background: var(--glass-fill);
+  box-shadow: var(--offset);
+  backdrop-filter: blur(64px) saturate(1.45);
+  -webkit-backdrop-filter: blur(64px) saturate(1.45);
 }
 
-[data-theme="glass"] .board-window {
-  background: rgba(255, 255, 255, 0.08);
+[data-theme="glass"] .board-window-titlebar,
+[data-theme="glass"] .board-window-body {
+  position: relative;
+  z-index: 1;
 }
 
 [data-theme="glass"] .board-window-titlebar {
-  background: rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="glass"] .board-window.is-dragging {
-  box-shadow: 0 28px 70px rgba(4, 10, 24, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -12px 24px rgba(0, 0, 0, 0.16);
 }
 
 [data-theme="glass"] .home-board-banner {
-  background: rgba(14, 165, 233, 0.18);
-  color: #e0f2fe;
+  color: var(--ink);
 }
 
-[data-theme="glass"] .theme-switch button.is-active,
+[data-theme="glass"] .board-launcher-toggle,
+[data-theme="glass"] .board-launcher-item,
+[data-theme="glass"] .home-board-studio {
+  border-width: 1px;
+  border-color: var(--glass-rim);
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.08) 46%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(36px) saturate(1.3);
+  -webkit-backdrop-filter: blur(36px) saturate(1.3);
+}
+
+[data-theme="glass"] .board-launcher-toggle:hover,
+[data-theme="glass"] .board-launcher-item:hover,
+[data-theme="glass"] .home-board-studio:hover,
+[data-theme="glass"] .route-status-action:hover {
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.42),
+      rgba(255, 255, 255, 0.12) 46%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+}
+
+[data-theme="glass"] .glass-chip,
+[data-theme="glass"] .glass-track,
+[data-theme="glass"] .glass-input,
+[data-theme="glass"] .glass-card,
+[data-theme="glass"] .glass-button {
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 [data-theme="glass"] .glass-chip.is-active,
 [data-theme="glass"] .glass-card.is-featured,
 [data-theme="glass"] .board-launcher-item.is-open {
-  background: rgba(255, 255, 255, 0.86);
-  color: #0f172a;
-  border-color: rgba(255, 255, 255, 0.7);
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="glass"] .board-launcher-item.is-open {
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      rgba(255, 255, 255, 0.46),
+      rgba(255, 255, 255, 0.16) 48%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+}
+
+[data-theme="glass"] .glass-scroll-track {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="glass"] .glass-scroll-thumb {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 [data-theme="glass"] .weather-atmosphere {
-  display: block;
+  display: none;
 }
 
 [data-theme="glass"] .weather-applet,
 [data-theme="glass"] .stocks-applet,
 [data-theme="glass"] .sports-applet,
-[data-theme="glass"] .coming-soon-applet {
-  color: #edf4fb;
-}
-
-[data-theme="glass"] .weather-applet--clear {
-  background: linear-gradient(160deg, rgba(59, 130, 246, 0.34), rgba(56, 189, 248, 0.16));
-}
-[data-theme="glass"] .weather-applet--night {
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.28), rgba(49, 46, 129, 0.32));
-}
+[data-theme="glass"] .settings-applet,
+[data-theme="glass"] .coming-soon-applet,
+[data-theme="glass"] .weather-applet--clear,
+[data-theme="glass"] .weather-applet--night,
 [data-theme="glass"] .weather-applet--cloudy,
-[data-theme="glass"] .weather-applet--fog {
-  background: linear-gradient(160deg, rgba(51, 65, 85, 0.32), rgba(100, 116, 139, 0.22));
-}
-[data-theme="glass"] .weather-applet--rain {
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.3), rgba(29, 78, 216, 0.28));
-}
-[data-theme="glass"] .weather-applet--snow {
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.26), rgba(148, 163, 184, 0.2));
-}
-[data-theme="glass"] .weather-applet--storm {
-  background: linear-gradient(160deg, rgba(2, 6, 23, 0.32), rgba(76, 29, 149, 0.3));
-}
-[data-theme="glass"] .stocks-applet--up {
-  background: linear-gradient(160deg, rgba(2, 44, 34, 0.28), rgba(16, 185, 129, 0.22));
-}
-[data-theme="glass"] .stocks-applet--down {
-  background: linear-gradient(160deg, rgba(28, 25, 23, 0.26), rgba(220, 38, 38, 0.22));
-}
-[data-theme="glass"] .sports-applet--nba {
-  background: linear-gradient(160deg, rgba(30, 58, 138, 0.3), rgba(194, 65, 12, 0.2));
-}
-[data-theme="glass"] .sports-applet--nfl {
-  background: linear-gradient(160deg, rgba(20, 83, 45, 0.3), rgba(30, 58, 138, 0.22));
-}
-[data-theme="glass"] .sports-applet--mlb {
-  background: linear-gradient(160deg, rgba(30, 58, 138, 0.3), rgba(153, 27, 27, 0.22));
-}
+[data-theme="glass"] .weather-applet--fog,
+[data-theme="glass"] .weather-applet--rain,
+[data-theme="glass"] .weather-applet--snow,
+[data-theme="glass"] .weather-applet--storm,
+[data-theme="glass"] .stocks-applet--up,
+[data-theme="glass"] .stocks-applet--down,
+[data-theme="glass"] .sports-applet--nba,
+[data-theme="glass"] .sports-applet--nfl,
+[data-theme="glass"] .sports-applet--mlb,
 [data-theme="glass"] .sports-applet--nhl {
-  background: linear-gradient(160deg, rgba(15, 23, 42, 0.26), rgba(14, 116, 144, 0.26));
-}
-[data-theme="glass"] .coming-soon-applet {
-  background: linear-gradient(160deg, rgba(30, 41, 59, 0.28), rgba(51, 65, 85, 0.2));
+  color: #eef3f8;
+  background: transparent;
 }
 
 [data-theme="glass"] .board-window .text-neutral-900,
 [data-theme="glass"] .board-window .text-neutral-900\/80,
 [data-theme="glass"] .board-window .text-neutral-900\/85,
 [data-theme="glass"] .board-window .text-neutral-900\/90 {
-  color: #edf4fb !important;
+  color: #eef3f8 !important;
 }
 
 [data-theme="glass"] .board-window .text-neutral-900\/40,
@@ -688,7 +769,7 @@ html[data-theme="glass"] body {
 [data-theme="glass"] .board-window .text-neutral-900\/60,
 [data-theme="glass"] .board-window .text-neutral-900\/70,
 [data-theme="glass"] .board-window .text-neutral-900\/75 {
-  color: rgb(237 244 251 / 0.62) !important;
+  color: rgb(238 243 248 / 0.62) !important;
 }
 
 [data-theme="glass"] .board-window .text-emerald-700 {
@@ -699,12 +780,290 @@ html[data-theme="glass"] body {
   color: #fecaca !important;
 }
 
-[data-theme="glass"] .hover\:bg-yellow-300:hover {
-  background: rgba(255, 255, 255, 0.16);
+[data-theme="glass"] .hover\:bg-yellow-300:hover,
+[data-theme="glass"] .glass-chip:hover,
+[data-theme="glass"] .glass-button:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 [data-theme="glass"] .glass-input::placeholder {
-  color: rgb(237 244 251 / 0.45);
+  color: rgb(238 243 248 / 0.45);
+}
+
+[data-theme="glass"] .sports-applet .border-neutral-900 {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="glass"] .board-window .divide-neutral-900 > :not(:last-child) {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="runner"] {
+  --background: #0c0612;
+  --foreground: #efe8ff;
+  --ink: #efe8ff;
+  --paper: #160b18;
+  --paper-2: #ff4d1a;
+  --punch: #ff4d1a;
+  --runner-cyan: #2cffd2;
+  --runner-mint: #d7ffe8;
+  --runner-magenta: #ff3d8a;
+  --offset: 6px 6px 0 #ff4d1a, 0 0 0 1px #2cffd2;
+  color-scheme: dark;
+}
+
+html[data-theme="runner"] body {
+  color-scheme: dark;
+}
+
+html[data-theme="runner"] .home-board-page,
+[data-theme="runner"].home-board-page {
+  overflow: hidden;
+  color: var(--ink);
+  background-color: #11080e;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M21 13h2v18h-2zM13 21h18v2H13z' fill='%232cffd2' fill-opacity='0.11'/%3E%3C/svg%3E"),
+    radial-gradient(
+      140% 110% at -5% -15%,
+      rgba(255, 48, 120, 0.34) 0%,
+      rgba(255, 70, 70, 0.12) 32%,
+      rgba(255, 77, 26, 0) 58%
+    ),
+    radial-gradient(
+      150% 120% at 110% 115%,
+      rgba(255, 77, 26, 0.26) 0%,
+      rgba(255, 48, 90, 0.1) 36%,
+      rgba(255, 48, 120, 0) 60%
+    ),
+    linear-gradient(155deg, #321420 0%, #160910 46%, #1a0e0c 100%);
+  background-size: 44px 44px, 100% 100%, 100% 100%, 100% 100%;
+}
+
+[data-theme="runner"].home-board-page::before {
+  content: "RUNNER";
+  position: absolute;
+  top: 7.2rem;
+  right: 0.7rem;
+  z-index: 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.48em;
+  color: #7ea4ff;
+  pointer-events: none;
+}
+
+[data-theme="runner"] .board-window,
+[data-theme="runner"] .home-board-banner,
+[data-theme="runner"] .glass-menu,
+[data-theme="runner"] .glass-chip,
+[data-theme="runner"] .glass-track,
+[data-theme="runner"] .glass-input,
+[data-theme="runner"] .glass-card,
+[data-theme="runner"] .glass-button,
+[data-theme="runner"] .board-launcher-toggle,
+[data-theme="runner"] .board-launcher-item,
+[data-theme="runner"] .home-board-studio,
+[data-theme="runner"] .glass-scroll-track,
+[data-theme="runner"] .glass-scroll-thumb {
+  border-radius: 3px;
+}
+
+[data-theme="runner"] .board-window,
+[data-theme="runner"] .home-board-banner,
+[data-theme="runner"] .glass-menu {
+  border-width: 1px;
+  border-color: rgba(44, 255, 210, 0.55);
+  background:
+    linear-gradient(180deg, rgba(255, 61, 138, 0.08), transparent 28%),
+    linear-gradient(165deg, #22101f 0%, #120914 100%);
+  box-shadow: var(--offset);
+}
+
+[data-theme="runner"] .board-window-titlebar,
+[data-theme="runner"] .board-window-body {
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="runner"] .board-window-titlebar {
+  color: #140810;
+  background: var(--punch);
+  border-bottom: 1px solid var(--runner-cyan);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+[data-theme="runner"] .board-window-titlebar h2 {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+[data-theme="runner"] .board-window-titlebar h2::before {
+  content: "+";
+  margin-right: 0.42rem;
+  font-weight: 500;
+  opacity: 0.72;
+}
+
+[data-theme="runner"] .board-window.is-dragging {
+  box-shadow:
+    10px 10px 0 #ff4d1a,
+    0 0 0 1px var(--runner-cyan);
+}
+
+[data-theme="runner"] .home-board-banner {
+  color: #140810;
+  background: var(--runner-mint);
+  border-color: #140810;
+  box-shadow: 4px 4px 0 #ff4d1a;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="runner"] .board-launcher-toggle,
+[data-theme="runner"] .board-launcher-item,
+[data-theme="runner"] .home-board-studio {
+  border-width: 1px;
+  border-color: #140810;
+  color: #140810;
+  background: var(--punch);
+  box-shadow: 4px 4px 0 var(--runner-cyan);
+}
+
+[data-theme="runner"] .board-launcher-toggle:hover,
+[data-theme="runner"] .board-launcher-item:hover,
+[data-theme="runner"] .home-board-studio:hover {
+  background: var(--runner-mint);
+}
+
+[data-theme="runner"] .board-launcher-item {
+  background: #efe8ff;
+}
+
+[data-theme="runner"] .board-launcher-item.is-open {
+  color: #140810;
+  background: var(--punch);
+  border-color: #140810;
+  box-shadow: 4px 4px 0 var(--runner-cyan);
+}
+
+[data-theme="runner"] .home-board-user {
+  color: var(--runner-cyan);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-theme="runner"] .glass-chip,
+[data-theme="runner"] .glass-track,
+[data-theme="runner"] .glass-input,
+[data-theme="runner"] .glass-card,
+[data-theme="runner"] .glass-button {
+  border-width: 1px;
+  border-color: rgba(44, 255, 210, 0.42);
+  background: rgba(12, 6, 18, 0.55);
+  box-shadow: 3px 3px 0 rgba(255, 77, 26, 0.55);
+}
+
+[data-theme="runner"] .glass-chip.is-active,
+[data-theme="runner"] .glass-card.is-featured {
+  color: #140810;
+  background: var(--punch);
+  border-color: #140810;
+  box-shadow: 3px 3px 0 var(--runner-cyan);
+}
+
+[data-theme="runner"] .glass-button {
+  color: #140810;
+  background: var(--punch);
+  border-color: #140810;
+}
+
+[data-theme="runner"] .glass-scroll-track {
+  background: rgba(12, 6, 18, 0.72);
+  border: 1px solid rgba(44, 255, 210, 0.4);
+  box-shadow: 2px 2px 0 rgba(255, 77, 26, 0.5);
+}
+
+[data-theme="runner"] .glass-scroll-thumb {
+  background: var(--punch);
+  border: 1px solid #140810;
+}
+
+[data-theme="runner"] .weather-atmosphere {
+  display: none;
+}
+
+[data-theme="runner"] .weather-applet,
+[data-theme="runner"] .stocks-applet,
+[data-theme="runner"] .sports-applet,
+[data-theme="runner"] .settings-applet,
+[data-theme="runner"] .coming-soon-applet,
+[data-theme="runner"] .weather-applet--clear,
+[data-theme="runner"] .weather-applet--night,
+[data-theme="runner"] .weather-applet--cloudy,
+[data-theme="runner"] .weather-applet--fog,
+[data-theme="runner"] .weather-applet--rain,
+[data-theme="runner"] .weather-applet--snow,
+[data-theme="runner"] .weather-applet--storm,
+[data-theme="runner"] .stocks-applet--up,
+[data-theme="runner"] .stocks-applet--down,
+[data-theme="runner"] .sports-applet--nba,
+[data-theme="runner"] .sports-applet--nfl,
+[data-theme="runner"] .sports-applet--mlb,
+[data-theme="runner"] .sports-applet--nhl {
+  color: #efe8ff;
+  background: transparent;
+}
+
+[data-theme="runner"] .board-window .text-neutral-900,
+[data-theme="runner"] .board-window .text-neutral-900\/80,
+[data-theme="runner"] .board-window .text-neutral-900\/85,
+[data-theme="runner"] .board-window .text-neutral-900\/90 {
+  color: #efe8ff !important;
+}
+
+[data-theme="runner"] .board-window .text-neutral-900\/40,
+[data-theme="runner"] .board-window .text-neutral-900\/45,
+[data-theme="runner"] .board-window .text-neutral-900\/50,
+[data-theme="runner"] .board-window .text-neutral-900\/55,
+[data-theme="runner"] .board-window .text-neutral-900\/60,
+[data-theme="runner"] .board-window .text-neutral-900\/70,
+[data-theme="runner"] .board-window .text-neutral-900\/75 {
+  color: rgb(239 232 255 / 0.62) !important;
+}
+
+[data-theme="runner"] .board-window .text-emerald-700 {
+  color: var(--runner-cyan) !important;
+}
+
+[data-theme="runner"] .board-window .text-rose-700 {
+  color: var(--runner-magenta) !important;
+}
+
+[data-theme="runner"] .hover\:bg-yellow-300:hover,
+[data-theme="runner"] .glass-chip:hover,
+[data-theme="runner"] .glass-button:hover {
+  background: var(--runner-mint);
+  color: #140810;
+}
+
+[data-theme="runner"] .glass-input::placeholder {
+  color: rgb(239 232 255 / 0.42);
+}
+
+[data-theme="runner"] .sports-applet .border-neutral-900 {
+  border-color: rgba(44, 255, 210, 0.35);
+  background: rgba(12, 6, 18, 0.42);
+}
+
+[data-theme="runner"] .board-window .divide-neutral-900 > :not(:last-child) {
+  border-color: rgba(44, 255, 210, 0.16);
 }
 
 @media (prefers-reduced-motion: reduce) {

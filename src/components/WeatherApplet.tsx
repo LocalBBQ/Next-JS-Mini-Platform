@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GlassScrollArea } from "@/components/GlassScrollArea";
+import { PinChip, PinToggle } from "@/components/PinControls";
+import { placeKey, useBoardPins } from "@/lib/board-pins";
 import type { WeatherPlace, WeatherSnapshot } from "@/lib/types";
 import { describeWeather, formatTemp, placeLabel } from "@/lib/weather";
 
@@ -26,8 +28,12 @@ export function WeatherApplet({
   title?: string;
   locations: WeatherPlace[];
 }) {
-  const defaultPlace = locations.find((place) => place.isDefault) ?? locations[0];
-  const [place, setPlace] = useState<WeatherPlace>(defaultPlace);
+  const pins = useBoardPins();
+  const personal = pins.personal;
+  const chips = personal ? pins.locations : locations;
+  const [place, setPlace] = useState<WeatherPlace | null>(
+    personal ? null : (locations.find((item) => item.isDefault) ?? locations[0] ?? null),
+  );
   const [weather, setWeather] = useState<WeatherSnapshot | null>(null);
   const [unit, setUnit] = useState<Unit>("f");
   const [query, setQuery] = useState("");
@@ -38,6 +44,23 @@ export function WeatherApplet({
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!pins.ready) return;
+    const fallback = personal ? pins.locations : locations;
+    setPlace((current) => {
+      if (current) return current;
+      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
+    });
+  }, [pins.ready, personal, pins.locations, locations]);
+
+  useEffect(() => {
+    if (!place) {
+      setWeather(null);
+      setStatus("ready");
+      setMessage("");
+      return;
+    }
+
+    const selected = place;
     const controller = new AbortController();
 
     async function load() {
@@ -45,12 +68,12 @@ export function WeatherApplet({
       setMessage("");
 
       const params = new URLSearchParams({
-        latitude: String(place.latitude),
-        longitude: String(place.longitude),
-        name: place.name,
-        state: place.state ?? "",
-        country: place.country,
-        id: place.id,
+        latitude: String(selected.latitude),
+        longitude: String(selected.longitude),
+        name: selected.name,
+        state: selected.state ?? "",
+        country: selected.country,
+        id: selected.id,
       });
 
       try {
@@ -143,15 +166,39 @@ export function WeatherApplet({
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        choosePlace({
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        setStatus("loading");
+        setMessage("");
+
+        let next: WeatherPlace = {
           id: "here",
           name: "Current location",
           state: "",
           country: "",
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
+          latitude,
+          longitude,
+        };
+
+        try {
+          const params = new URLSearchParams({
+            latitude: String(latitude),
+            longitude: String(longitude),
+          });
+          const response = await fetch(`/api/geocode?${params.toString()}`);
+          if (response.ok) {
+            const payload = await response.json();
+            const match = payload.results?.[0] as WeatherPlace | undefined;
+            if (match?.name) {
+              next = { ...match, id: "here", latitude, longitude };
+            }
+          }
+        } catch {
+          // Keep the fallback label if reverse geocoding fails.
+        }
+
+        choosePlace(next);
       },
       () => {
         setMessage("Location permission was declined.");
@@ -221,37 +268,58 @@ export function WeatherApplet({
         />
         {open && suggestions.length > 0 ? (
           <ul className="glass-menu absolute top-full z-30 mt-2 w-full overflow-hidden rounded-2xl">
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.id}>
+            {suggestions.map((suggestion) => {
+              const pinned = pins.locations.some((item) => item.id === placeKey(suggestion));
+              return (
+              <li key={suggestion.id} className="flex items-center gap-2 px-2 py-1">
                 <button
                   type="button"
-                  className="w-full px-4 py-3 text-left text-sm text-neutral-900/90 transition hover:bg-yellow-300"
+                  className="min-w-0 flex-1 px-2 py-2 text-left text-sm text-neutral-900/90 transition hover:bg-yellow-300"
                   onClick={() => choosePlace(suggestion)}
                 >
                   {placeLabel(suggestion)}
                 </button>
+                <PinToggle
+                  pinned={pinned}
+                  label={placeLabel(suggestion)}
+                  disabled={pins.saving}
+                  onToggle={() =>
+                    pinned ? pins.unpinLocation(suggestion) : pins.pinLocation(suggestion)
+                  }
+                />
               </li>
-            ))}
+              );
+            })}
           </ul>
         ) : null}
       </div>
 
+      {place && !pins.locations.some((item) => item.id === placeKey(place)) ? (
+        <div className="relative z-10 mt-4">
+          <PinToggle
+            pinned={false}
+            label={placeLabel(place)}
+            disabled={pins.saving || (personal && !pins.ready)}
+            onToggle={() => pins.pinLocation(place)}
+          />
+        </div>
+      ) : null}
+
+      {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
+
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {locations.map((item) => {
-          const active = item.id === place.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => choosePlace(item)}
-              className={`glass-chip rounded-full px-3 py-1.5 text-sm transition ${
-                active ? "is-active" : "text-neutral-900/85 hover:bg-yellow-300"
-              }`}
-            >
-              {item.state ? `${item.name}, ${item.state}` : item.name}
-            </button>
-          );
-        })}
+        {personal && !pins.ready ? (
+          <p className="text-sm text-neutral-900/60">Loading your cities…</p>
+        ) : null}
+        {chips.map((item) => (
+          <PinChip
+            key={item.id}
+            active={place ? placeKey(item) === placeKey(place) : false}
+            label={item.state ? `${item.name}, ${item.state}` : item.name}
+            onOpen={() => choosePlace(item)}
+            onUnpin={personal ? () => pins.unpinLocation(item) : undefined}
+          />
+        ))}
       </div>
 
       <div className="relative z-10 mt-8 min-h-48">
@@ -261,7 +329,10 @@ export function WeatherApplet({
         {status === "error" ? (
           <p className="text-amber-100">{message}</p>
         ) : null}
-        {status === "ready" && weather ? (
+        {status === "ready" && !weather && personal && pins.ready && pins.locations.length === 0 ? (
+          <p className="text-neutral-900/70">Search for a city and pin it to this board.</p>
+        ) : null}
+        {status === "ready" && weather && place ? (
           <>
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div>
@@ -297,41 +368,61 @@ export function WeatherApplet({
               </dl>
             </div>
 
-            <GlassScrollArea className="mt-8" axis="x">
+            <GlassScrollArea className="weather-hourly-scroll mt-8" axis="x">
               <div className="flex min-w-max gap-3">
-                {weather.hourly.map((hour) => (
-                  <div
-                    key={hour.time}
-                    className="glass-card w-20 rounded-2xl px-3 py-4 text-center"
-                  >
-                    <p className="text-xs text-neutral-900/55">{hourLabel(hour.time)}</p>
-                    <p className="mt-2 text-lg text-neutral-900">
-                      {formatTemp(hour.temperature, unit)}
-                    </p>
-                    <p className="mt-1 text-[11px] text-neutral-900/50">
-                      {hour.precipitationProbability}%
-                    </p>
-                  </div>
-                ))}
+                {weather.hourly.map((hour) => {
+                  const hourWeather = describeWeather(hour.weatherCode);
+                  return (
+                    <div
+                      key={hour.time}
+                      className="glass-card w-20 rounded-2xl px-3 py-4 text-center"
+                    >
+                      <p className="text-xs text-neutral-900/55">{hourLabel(hour.time)}</p>
+                      <p
+                        className="weather-emoji mt-2 text-xl"
+                        role="img"
+                        aria-label={hourWeather.label}
+                      >
+                        {hourWeather.emoji}
+                      </p>
+                      <p className="mt-2 text-lg text-neutral-900">
+                        {formatTemp(hour.temperature, unit)}
+                      </p>
+                      <p className="mt-1 text-[11px] text-neutral-900/50">
+                        {hour.precipitationProbability}%
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </GlassScrollArea>
 
-            <div className="mt-6 divide-y divide-neutral-900">
-              {weather.daily.map((day, index) => (
-                <div
-                  key={day.date}
-                  className="flex items-center justify-between py-3 text-sm text-neutral-900/85"
-                >
-                  <p className="w-16">{index === 0 ? "Today" : weekdayLabel(day.date)}</p>
-                  <p className="flex-1 text-neutral-900/60">
-                    {describeWeather(day.weatherCode).label}
-                  </p>
-                  <p className="w-28 text-right">
-                    {formatTemp(day.temperatureMax, unit)} /{" "}
-                    {formatTemp(day.temperatureMin, unit)}
-                  </p>
-                </div>
-              ))}
+            <div className="weather-daily-forecast divide-y divide-neutral-900">
+              {weather.daily.map((day, index) => {
+                const dayWeather = describeWeather(day.weatherCode);
+                return (
+                  <div
+                    key={day.date}
+                    className="flex items-center justify-between py-3 text-sm text-neutral-900/85"
+                  >
+                    <p className="w-16">{index === 0 ? "Today" : weekdayLabel(day.date)}</p>
+                    <p className="flex flex-1 items-center gap-2 text-neutral-900/60">
+                      <span
+                        className="weather-emoji text-base"
+                        role="img"
+                        aria-label={dayWeather.label}
+                      >
+                        {dayWeather.emoji}
+                      </span>
+                      <span>{dayWeather.label}</span>
+                    </p>
+                    <p className="w-28 text-right">
+                      {formatTemp(day.temperatureMax, unit)} /{" "}
+                      {formatTemp(day.temperatureMin, unit)}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </>
         ) : null}

@@ -40,20 +40,21 @@ type OpenMeteoGeocode = {
 export type WeatherCondition = {
   label: string;
   theme: "clear" | "cloudy" | "fog" | "rain" | "snow" | "storm";
+  emoji: string;
 };
 
 export function describeWeather(code: number): WeatherCondition {
-  if (code === 0) return { label: "Clear", theme: "clear" };
-  if (code <= 2) return { label: "Partly cloudy", theme: "cloudy" };
-  if (code === 3) return { label: "Overcast", theme: "cloudy" };
-  if (code === 45 || code === 48) return { label: "Fog", theme: "fog" };
-  if (code >= 51 && code <= 57) return { label: "Drizzle", theme: "rain" };
-  if (code >= 61 && code <= 67) return { label: "Rain", theme: "rain" };
-  if (code >= 71 && code <= 77) return { label: "Snow", theme: "snow" };
-  if (code >= 80 && code <= 82) return { label: "Showers", theme: "rain" };
-  if (code >= 85 && code <= 86) return { label: "Snow showers", theme: "snow" };
-  if (code >= 95) return { label: "Thunderstorm", theme: "storm" };
-  return { label: "Mixed", theme: "cloudy" };
+  if (code === 0) return { label: "Clear", theme: "clear", emoji: "☀️" };
+  if (code <= 2) return { label: "Partly cloudy", theme: "cloudy", emoji: "⛅" };
+  if (code === 3) return { label: "Overcast", theme: "cloudy", emoji: "☁️" };
+  if (code === 45 || code === 48) return { label: "Fog", theme: "fog", emoji: "🌁" };
+  if (code >= 51 && code <= 57) return { label: "Drizzle", theme: "rain", emoji: "☂️" };
+  if (code >= 61 && code <= 67) return { label: "Rain", theme: "rain", emoji: "☔" };
+  if (code >= 71 && code <= 77) return { label: "Snow", theme: "snow", emoji: "❄️" };
+  if (code >= 80 && code <= 82) return { label: "Showers", theme: "rain", emoji: "☔" };
+  if (code >= 85 && code <= 86) return { label: "Snow showers", theme: "snow", emoji: "❄️" };
+  if (code >= 95) return { label: "Thunderstorm", theme: "storm", emoji: "⛈️" };
+  return { label: "Mixed", theme: "cloudy", emoji: "☁️" };
 }
 
 export function toFahrenheit(celsius: number) {
@@ -175,4 +176,53 @@ export function geocodeUrl(name: string) {
   });
 
   return `https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`;
+}
+
+export function reverseGeocodeUrl(latitude: number, longitude: number) {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    localityLanguage: "en",
+  });
+
+  return `https://api.bigdatacloud.net/data/reverse-geocode-client?${params.toString()}`;
+}
+
+type ReverseGeocodePayload = {
+  city?: string;
+  locality?: string;
+  principalSubdivision?: string;
+  principalSubdivisionCode?: string;
+  countryName?: string;
+  countryCode?: string;
+};
+
+export function parseReverseGeocode(
+  payload: ReverseGeocodePayload,
+  coords: { latitude: number; longitude: number },
+): WeatherPlace | null {
+  const name = payload.locality?.trim() || payload.city?.trim() || "";
+  if (!name) return null;
+
+  const countryCode = (payload.countryCode || "").toUpperCase();
+  const subdivisionCode = payload.principalSubdivisionCode?.trim() || "";
+  const subdivision = payload.principalSubdivision?.trim() || "";
+  const regionFromCode = subdivisionCode.includes("-")
+    ? subdivisionCode.slice(subdivisionCode.indexOf("-") + 1)
+    : "";
+  const state =
+    (regionFromCode || (subdivision !== name ? subdivision : "")).trim();
+  const country =
+    countryCode === "US"
+      ? "United States"
+      : payload.countryName?.trim() || "";
+
+  return {
+    id: "here",
+    name,
+    state,
+    country,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
+  };
 }

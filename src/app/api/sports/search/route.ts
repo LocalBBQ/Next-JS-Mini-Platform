@@ -1,18 +1,18 @@
 import { NextRequest } from "next/server";
 import { jsonError } from "@/lib/route";
-import { searchTickers } from "@/lib/stocks";
+import { searchTeams } from "@/lib/sports";
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q")?.trim() || "";
 
-  if (query.length < 1) {
+  if (query.length < 2) {
     return Response.json({ results: [] });
   }
 
   try {
-    const results = await searchTickers(query);
+    const results = await searchTeams(query);
     return Response.json({ results });
   } catch {
-    return jsonError("Could not search tickers.", 502);
+    return jsonError("Could not search teams.", 502);
   }
 }

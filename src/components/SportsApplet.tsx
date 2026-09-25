@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { PinChip, PinToggle } from "@/components/PinControls";
+import { teamKey, useBoardPins } from "@/lib/board-pins";
 import { formatGameTime, SPORTS_LEAGUES } from "@/lib/sports";
 import type { SportsGame, SportsLeague, SportsTeam } from "@/lib/types";
 
@@ -45,12 +47,32 @@ export function SportsApplet({
   title?: string;
   teams: SportsTeam[];
 }) {
+  const pins = useBoardPins();
+  const personal = pins.personal;
+  const chips = personal ? pins.teams : teams;
   const defaultTeam = teams.find((team) => team.isDefault) ?? teams[0] ?? null;
   const [league, setLeague] = useState<SportsLeague>(defaultTeam?.league ?? "nba");
-  const [featured, setFeatured] = useState<SportsTeam | null>(defaultTeam);
+  const [featured, setFeatured] = useState<SportsTeam | null>(personal ? null : defaultTeam);
   const [games, setGames] = useState<SportsGame[]>([]);
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<SportsTeam[]>([]);
+  const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [message, setMessage] = useState("");
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pins.ready) return;
+    const fallback = personal ? pins.teams : teams;
+    setFeatured((current) => {
+      if (current) return current;
+      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
+    });
+  }, [pins.ready, personal, pins.teams, teams]);
+
+  useEffect(() => {
+    if (featured) setLeague(featured.league);
+  }, [featured]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,14 +109,64 @@ export function SportsApplet({
     return () => controller.abort();
   }, [league, featured?.abbreviation]);
 
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/sports/search?q=${encodeURIComponent(query.trim())}`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) return;
+        const payload = await response.json();
+        setSuggestions(payload.results ?? []);
+        setOpen(true);
+      } catch {
+        if (controller.signal.aborted) return;
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (!boxRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, []);
+
   function chooseLeague(next: SportsLeague) {
     setLeague(next);
-    setFeatured(teams.find((team) => team.league === next) ?? null);
+    setFeatured(chips.find((team) => team.league === next) ?? null);
+  }
+
+  function unpin(team: SportsTeam) {
+    if (featured && teamKey(featured) === teamKey(team)) {
+      const remaining = chips.filter((item) => teamKey(item) !== teamKey(team));
+      setFeatured(remaining.find((item) => item.league === league) ?? remaining[0] ?? null);
+    }
+    pins.unpinTeam(team);
   }
 
   function chooseTeam(next: SportsTeam) {
     setFeatured(next);
     setLeague(next.league);
+    setQuery("");
+    setSuggestions([]);
+    setOpen(false);
   }
 
   return (
@@ -129,22 +201,76 @@ export function SportsApplet({
         ))}
       </div>
 
+      <div ref={boxRef} className="relative z-20 mt-4">
+        <label className="sr-only" htmlFor="team-search">
+          Search for a team
+        </label>
+        <input
+          id="team-search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onFocus={() => suggestions.length > 0 && setOpen(true)}
+          placeholder="Search Lakers, Chiefs, Yankees"
+          className="glass-input w-full rounded-2xl px-4 py-3 text-neutral-900 outline-none placeholder:text-neutral-900/45 focus:border-neutral-900"
+        />
+        {open && suggestions.length > 0 ? (
+          <ul className="glass-menu absolute top-full z-30 mt-2 w-full overflow-hidden rounded-2xl">
+            {suggestions.map((suggestion) => {
+              const pinned = pins.teams.some((item) => teamKey(item) === teamKey(suggestion));
+              return (
+                <li key={suggestion.id} className="flex items-center gap-2 px-2 py-1">
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center justify-between px-2 py-2 text-left text-sm text-neutral-900/90 transition hover:bg-yellow-300"
+                    onClick={() => chooseTeam(suggestion)}
+                  >
+                    <span className="truncate">{suggestion.name}</span>
+                    <span className="pl-3 text-neutral-900/55">
+                      {SPORTS_LEAGUES[suggestion.league].label}
+                    </span>
+                  </button>
+                  <PinToggle
+                    pinned={pinned}
+                    label={suggestion.name}
+                    disabled={pins.saving}
+                    onToggle={() => (pinned ? unpin(suggestion) : pins.pinTeam(suggestion))}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </div>
+
+      {featured && !pins.teams.some((item) => teamKey(item) === teamKey(featured)) ? (
+        <div className="relative z-10 mt-4">
+          <PinToggle
+            pinned={false}
+            label={featured.name}
+            disabled={pins.saving || (personal && !pins.ready)}
+            onToggle={() => pins.pinTeam(featured)}
+          />
+        </div>
+      ) : null}
+
+      {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
+
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {teams.map((item) => {
-          const active = item.id === featured?.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => chooseTeam(item)}
-              className={`glass-chip rounded-full px-3 py-1.5 text-sm transition ${
-                active ? "is-active" : "text-neutral-900/85 hover:bg-yellow-300"
-              }`}
-            >
-              {item.name}
-            </button>
-          );
-        })}
+        {personal && !pins.ready ? (
+          <p className="text-sm text-neutral-900/60">Loading your teams…</p>
+        ) : null}
+        {personal && pins.ready && chips.length === 0 ? (
+          <p className="text-sm text-neutral-900/70">Search for a team and pin it to this board.</p>
+        ) : null}
+        {chips.map((item) => (
+          <PinChip
+            key={item.id}
+            active={featured ? teamKey(item) === teamKey(featured) : false}
+            label={item.name}
+            onOpen={() => chooseTeam(item)}
+            onUnpin={personal ? () => unpin(item) : undefined}
+          />
+        ))}
       </div>
 
       <div className="relative z-10 mt-8 min-h-48">

@@ -35,6 +35,7 @@ export const applet = defineType({
           { title: "Weather", value: "weather" },
           { title: "Stocks", value: "stocks" },
           { title: "Sports", value: "sports" },
+          { title: "Settings", value: "settings" },
           { title: "Placeholder", value: "placeholder" },
         ],
         layout: "radio",

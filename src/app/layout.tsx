@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{var t=localStorage.getItem('home-board-theme-v1');if(t==='glass'||t==='brutal')document.documentElement.dataset.theme=t}catch(e){}",
+              "try{var t=localStorage.getItem('home-board-theme-v1');if(t==='glass'||t==='brutal'||t==='runner')document.documentElement.dataset.theme=t}catch(e){}",
           }}
         />
         {children}

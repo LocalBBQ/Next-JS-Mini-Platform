@@ -107,6 +107,52 @@ export function parseScoreboard(
   return games.sort((left, right) => Number(right.featured) - Number(left.featured));
 }
 
+type EspnTeamSearch = {
+  items?: Array<{
+    type?: string;
+    displayName?: string;
+    abbreviation?: string;
+    league?: string;
+  }>;
+};
+
+export async function searchTeams(query: string): Promise<SportsTeam[]> {
+  const params = new URLSearchParams({
+    query,
+    limit: "8",
+    type: "team",
+  });
+  const response = await fetch(
+    `https://site.web.api.espn.com/apis/common/v3/search?${params.toString()}`,
+    { next: { revalidate: 3600, tags: ["sports-search"] } },
+  );
+
+  if (!response.ok) {
+    throw new Error("Could not search teams.");
+  }
+
+  const payload = (await response.json()) as EspnTeamSearch;
+  const teams: SportsTeam[] = [];
+  const seen = new Set<string>();
+
+  for (const item of payload.items ?? []) {
+    if (item.type !== "team") continue;
+    const league = item.league?.trim().toLowerCase() ?? "";
+    if (!isSportsLeague(league)) continue;
+    const abbreviation = item.abbreviation?.trim().toUpperCase() ?? "";
+    const name = item.displayName?.trim() ?? "";
+    if (abbreviation.length < 2 || !name) continue;
+
+    const id = `${league}-${abbreviation}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    teams.push({ id, name, abbreviation, league });
+    if (teams.length >= 8) break;
+  }
+
+  return teams;
+}
+
 export function formatGameTime(iso: string) {
   if (!iso) return "";
   return new Intl.DateTimeFormat("en-US", {

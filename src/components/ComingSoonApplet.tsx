@@ -1,6 +1,12 @@
 import type { Applet } from "@/lib/types";
 
-export function ComingSoonApplet({ applet }: { applet: Applet }) {
+export function ComingSoonApplet({
+  applet,
+  showStudio = false,
+}: {
+  applet: Applet;
+  showStudio?: boolean;
+}) {
   return (
     <section
       className="coming-soon-applet"
@@ -13,10 +19,14 @@ export function ComingSoonApplet({ applet }: { applet: Applet }) {
         {applet.title}
       </h2>
       <p className="mt-4 max-w-lg text-neutral-900/75">{applet.description}</p>
-      <p className="mt-6 text-sm text-neutral-900/55">
-        Flip this to <span className="text-neutral-900">Live</span> in Studio after the
-        matching applet exists in code.
-      </p>
+      {showStudio ? (
+        <p className="mt-6 text-sm text-neutral-900/55">
+          Flip this to <span className="text-neutral-900">Live</span> in Studio after the
+          matching applet exists in code.
+        </p>
+      ) : (
+        <p className="mt-6 text-sm text-neutral-900/55">This applet is not live yet.</p>
+      )}
     </section>
   );
 }

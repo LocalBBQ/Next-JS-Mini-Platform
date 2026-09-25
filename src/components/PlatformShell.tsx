@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
+import { AuthControls } from "@/components/AuthControls";
 import { ComingSoonApplet } from "@/components/ComingSoonApplet";
 import { GlassScrollArea } from "@/components/GlassScrollArea";
+import { SettingsApplet } from "@/components/SettingsApplet";
 import { SportsApplet } from "@/components/SportsApplet";
 import { StocksApplet } from "@/components/StocksApplet";
 import { WeatherApplet } from "@/components/WeatherApplet";
-import type { Applet, AppletKind, PlatformContent } from "@/lib/types";
+import { BoardPinsProvider } from "@/lib/board-pins";
+import { isBoardTheme, type Applet, type AppletKind, type BoardTheme, type BoardUser, type PlatformContent } from "@/lib/types";
 
 const STORAGE_KEY = "home-board-layout-v1";
 const THEME_KEY = "home-board-theme-v1";
 const CARD_WIDTH = 400;
 const CARD_MIN_VISIBLE = 72;
-
-type BoardTheme = "brutal" | "glass";
 
 type BoardWindowState = {
   id: string;
@@ -34,7 +35,7 @@ function defaultWindows(applets: Applet[], boardWidth: number): BoardWindowState
     const row = Math.floor(index / cols);
     return {
       id: applet._id,
-      open: true,
+      open: applet.kind !== "settings",
       x: 88 + col * (width + 20),
       y: 88 + row * 36,
       z: index + 1,
@@ -76,29 +77,7 @@ function persist(layout: BoardWindowState[]) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
 }
 
-function HomeBoardMark() {
-  return (
-    <svg
-      className="home-board-logo"
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden="true"
-    >
-      <rect x="2" y="2" width="28" height="28" rx="9" fill="#ffd400" stroke="#161616" strokeWidth="3" />
-      <path
-        d="M7.5 15.2 16 8.2l8.5 7"
-        stroke="#161616"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <rect x="9.5" y="14.5" width="13" height="10" rx="1.6" fill="#fff6ea" stroke="#161616" strokeWidth="2.2" />
-      <rect x="13.2" y="18.2" width="5.6" height="6.2" rx="0.8" fill="#ffd400" stroke="#161616" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
-function Glyph({ name }: { name: AppletKind | "menu" | "close" | "settings" }) {
+function Glyph({ name }: { name: AppletKind | "menu" | "close" }) {
   const props = {
     width: 18,
     height: 18,
@@ -130,15 +109,15 @@ function Glyph({ name }: { name: AppletKind | "menu" | "close" | "settings" }) {
       return (
         <svg {...props}>
           <circle cx="12" cy="12" r="8" />
-          <path d="M5.6 8.4c2.6 1 5.2 1 8.8-.2M5.6 15.6c2.6-1 5.2-1 8.8.2M12 4c-1.7 2.5-1.7 13.5 0 16M12 4c1.7 2.5 1.7 13.5 0 16" />
+          <path d="M5 6.2c3.8 2.6 3.8 9 0 11.6M19 6.2c-3.8 2.6-3.8 9 0 11.6" />
         </svg>
       );
     case "settings":
       return (
         <svg {...props}>
-          <circle cx="12" cy="12" r="3.1" />
-          <path d="M12 3.4v2.1M12 18.5v2.1M5.1 5.1l1.5 1.5M17.4 17.4l1.5 1.5M3.4 12h2.1M18.5 12h2.1M5.1 18.9l1.5-1.5M17.4 6.6l1.5-1.5" />
-          <path d="M8.2 4.8 9 7.2M15.8 4.8 15 7.2M4.8 8.2 7.2 9M4.8 15.8 7.2 15M8.2 19.2 9 16.8M15.8 19.2 15 16.8M19.2 8.2 16.8 9M19.2 15.8 16.8 15" />
+          <circle cx="12" cy="12" r="3" />
+          <circle cx="12" cy="12" r="6.1" />
+          <path d="M12 2.4v2.2M12 19.4v2.2M4.4 4.4l1.6 1.6M18 18l1.6 1.6M2.4 12h2.2M19.4 12h2.2M4.4 19.6l1.6-1.6M18 6l1.6-1.6" />
         </svg>
       );
     case "close":
@@ -159,9 +138,27 @@ function Glyph({ name }: { name: AppletKind | "menu" | "close" | "settings" }) {
   }
 }
 
-function renderApplet(applet: Applet, content: PlatformContent) {
+function renderApplet(
+  applet: Applet,
+  content: PlatformContent,
+  theme: BoardTheme,
+  onThemeChange: (next: BoardTheme) => void,
+  showStudio: boolean,
+  user: BoardUser | null,
+) {
+  if (applet.kind === "settings") {
+    return (
+      <SettingsApplet
+        title={applet.title}
+        theme={theme}
+        onThemeChange={onThemeChange}
+        user={user}
+      />
+    );
+  }
+
   if (applet.status !== "live") {
-    return <ComingSoonApplet applet={applet} />;
+    return <ComingSoonApplet applet={applet} showStudio={showStudio} />;
   }
 
   switch (applet.kind) {
@@ -172,7 +169,7 @@ function renderApplet(applet: Applet, content: PlatformContent) {
     case "sports":
       return <SportsApplet title={applet.title} teams={content.teams} />;
     default:
-      return <ComingSoonApplet applet={applet} />;
+      return <ComingSoonApplet applet={applet} showStudio={showStudio} />;
   }
 }
 
@@ -242,9 +239,15 @@ const BoardFrame = memo(function BoardFrame({
 export function PlatformShell({
   content,
   sanityConfigured,
+  authEnabled,
+  user,
+  showStudio,
 }: {
   content: PlatformContent;
   sanityConfigured: boolean;
+  authEnabled: boolean;
+  user: BoardUser | null;
+  showStudio: boolean;
 }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const windowNodes = useRef(new Map<string, HTMLElement>());
@@ -264,14 +267,16 @@ export function PlatformShell({
 
   const launcherRef = useRef<HTMLElement>(null);
   const [openById, setOpenById] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(content.applets.map((applet) => [applet._id, true] as const)),
+    Object.fromEntries(
+      content.applets.map((applet) => [applet._id, applet.kind !== "settings"] as const),
+    ),
   );
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState<BoardTheme>("brutal");
 
   useLayoutEffect(() => {
     const saved = window.localStorage.getItem(THEME_KEY);
-    if (saved !== "brutal" && saved !== "glass") return;
+    if (!isBoardTheme(saved)) return;
     setTheme(saved);
     document.documentElement.dataset.theme = saved;
   }, []);
@@ -451,14 +456,18 @@ export function PlatformShell({
   }, []);
 
   return (
+    <BoardPinsProvider user={user}>
     <div className="home-board-page" data-theme={theme}>
-      <header className="home-board-brand">
-        <HomeBoardMark />
-        <h1>Home Board</h1>
-        <Link href="/studio" className="home-board-studio">
-          Studio
-        </Link>
-      </header>
+      {showStudio || authEnabled ? (
+        <div className="home-board-tools">
+          {showStudio ? (
+            <Link href="/studio" className="home-board-studio">
+              Studio
+            </Link>
+          ) : null}
+          <AuthControls enabled={authEnabled} user={user} />
+        </div>
+      ) : null}
 
       <nav
         ref={launcherRef}
@@ -494,31 +503,10 @@ export function PlatformShell({
               </button>
             );
           })}
-          <div className="board-launcher-settings">
-            <p className="board-settings-label">Theme</p>
-            <div className="theme-switch" role="group" aria-label="Theme">
-              <button
-                type="button"
-                className={theme === "brutal" ? "is-active" : ""}
-                aria-pressed={theme === "brutal"}
-                onClick={() => applyTheme("brutal")}
-              >
-                Brutal
-              </button>
-              <button
-                type="button"
-                className={theme === "glass" ? "is-active" : ""}
-                aria-pressed={theme === "glass"}
-                onClick={() => applyTheme("glass")}
-              >
-                Glass
-              </button>
-            </div>
-          </div>
         </div>
       </nav>
 
-      {!sanityConfigured || !content.fromSanity ? (
+      {showStudio && (!sanityConfigured || !content.fromSanity) ? (
         <p className="home-board-banner">
           Using fallback pins. Connect Sanity to edit this board in Studio.
         </p>
@@ -542,11 +530,12 @@ export function PlatformShell({
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
             >
-              {renderApplet(applet, content)}
+              {renderApplet(applet, content, theme, applyTheme, showStudio, user)}
             </BoardFrame>
           );
         })}
       </div>
     </div>
+    </BoardPinsProvider>
   );
 }
