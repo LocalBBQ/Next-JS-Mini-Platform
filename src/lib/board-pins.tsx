@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { fetchUserBoard, persistUserBoard } from "@/lib/user-board-client";
 import type { BoardUser, SportsTeam, StockTicker, UserBoard, WeatherPlace } from "@/lib/types";
@@ -132,7 +131,7 @@ export function BoardPinsProvider({
   const commit = useCallback(
     async (update: Partial<PinLists>) => {
       if (!user) {
-        await signIn("github");
+        window.location.assign("/signin");
         return;
       }
       if (savingRef.current) return;

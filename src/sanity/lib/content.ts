@@ -1,8 +1,10 @@
 import { cache } from "react";
+import { fallbackAuthScreen } from "@/lib/auth-screen";
 import { fallbackContent, SETTINGS_APPLET } from "@/lib/fallback-content";
 import type {
   Applet,
   AppletKind,
+  AuthScreen,
   PlatformContent,
   SportsLeague,
   SportsTeam,
@@ -10,7 +12,7 @@ import type {
   WeatherPlace,
 } from "@/lib/types";
 import { client } from "@/sanity/lib/client";
-import { platformContentQuery } from "@/sanity/lib/queries";
+import { authScreenQuery, platformContentQuery } from "@/sanity/lib/queries";
 
 type SanityPayload = {
   settings?: {
@@ -162,6 +164,50 @@ function normalize(payload: SanityPayload | null): PlatformContent | null {
     fromSanity: true,
   };
 }
+
+type AuthScreenPayload = {
+  kicker?: string | null;
+  title?: string | null;
+  body?: string | null;
+  points?: Array<string | null> | null;
+  signUpLabel?: string | null;
+  signInLabel?: string | null;
+  browseLabel?: string | null;
+  footnote?: string | null;
+} | null;
+
+function textOr(value: string | null | undefined, fallback: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
+function normalizeAuthScreen(payload: AuthScreenPayload): AuthScreen {
+  const points = (payload?.points ?? [])
+    .map((point) => point?.trim() || "")
+    .filter(Boolean);
+
+  return {
+    kicker: textOr(payload?.kicker, fallbackAuthScreen.kicker),
+    title: textOr(payload?.title, fallbackAuthScreen.title),
+    body: textOr(payload?.body, fallbackAuthScreen.body),
+    points: points.length > 0 ? points : fallbackAuthScreen.points,
+    signUpLabel: textOr(payload?.signUpLabel, fallbackAuthScreen.signUpLabel),
+    signInLabel: textOr(payload?.signInLabel, fallbackAuthScreen.signInLabel),
+    browseLabel: textOr(payload?.browseLabel, fallbackAuthScreen.browseLabel),
+    footnote: textOr(payload?.footnote, fallbackAuthScreen.footnote),
+  };
+}
+
+export const getAuthScreen = cache(async (): Promise<AuthScreen> => {
+  if (!client) return fallbackAuthScreen;
+
+  try {
+    const payload = await client.fetch<AuthScreenPayload>(authScreenQuery);
+    return normalizeAuthScreen(payload);
+  } catch {
+    return fallbackAuthScreen;
+  }
+});
 
 export const getPlatformContent = cache(async (): Promise<PlatformContent> => {
   if (!client) {

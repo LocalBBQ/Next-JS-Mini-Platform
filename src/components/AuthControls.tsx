@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import Link from "next/link";
 import type { BoardUser } from "@/lib/types";
 
 export function AuthControls({
@@ -14,13 +14,9 @@ export function AuthControls({
 
   if (!user) {
     return (
-      <button
-        type="button"
-        className="home-board-studio"
-        onClick={() => signIn("github")}
-      >
+      <Link href="/signin" className="home-board-studio">
         Sign in
-      </button>
+      </Link>
     );
   }
 

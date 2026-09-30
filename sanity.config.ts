@@ -26,6 +26,12 @@ export default defineConfig({
                   .schemaType("platformSettings")
                   .documentId("platformSettings"),
               ),
+            S.listItem()
+              .title("Sign-in screen")
+              .id("authScreen")
+              .child(
+                S.document().schemaType("authScreen").documentId("authScreen"),
+              ),
             S.divider(),
             S.documentTypeListItem("applet").title("Applets"),
             S.documentTypeListItem("weatherLocation").title(

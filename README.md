@@ -1,10 +1,14 @@
 # Home Board
 
-A personal applet board for weather, stocks, and sports.
+Weather, stocks, and sports.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+[localhost:3000](http://localhost:3000)
+
+Sanity catalog, GitHub sign-in, Neon pins. Env: `.env.example`.
+
+`/` board · `/signin` · `/studio` (`ADMIN_EMAILS`) · `/api/weather` `/api/stocks` `/api/sports` `/api/me/board`

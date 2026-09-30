@@ -1,3 +1,14 @@
+export const authScreenQuery = `*[_type == "authScreen" && _id == "authScreen"][0]{
+  kicker,
+  title,
+  body,
+  points,
+  signUpLabel,
+  signInLabel,
+  browseLabel,
+  footnote
+}`;
+
 export const platformContentQuery = `{
   "settings": *[_type == "platformSettings" && _id == "platformSettings"][0]{
     title,

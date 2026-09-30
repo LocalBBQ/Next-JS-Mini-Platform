@@ -13,6 +13,17 @@ export type PlatformSettings = {
   footerNote: string;
 };
 
+export type AuthScreen = {
+  kicker: string;
+  title: string;
+  body: string;
+  points: string[];
+  signUpLabel: string;
+  signInLabel: string;
+  browseLabel: string;
+  footnote: string;
+};
+
 export type Applet = {
   _id: string;
   title: string;
