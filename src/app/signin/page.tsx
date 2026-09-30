@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AuthScreenForm } from "@/components/AuthScreenForm";
-import { isAuthConfigured } from "@/lib/auth-env";
+import {
+  isAuthConfigured,
+  isGitHubAuthConfigured,
+  isPasswordAuthConfigured,
+} from "@/lib/auth-env";
 import { getAuthScreen } from "@/sanity/lib/content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -40,11 +44,19 @@ export default async function SignInPage() {
             ))}
           </ul>
         ) : null}
-        <AuthScreenForm screen={screen} authEnabled={isAuthConfigured} />
+        <AuthScreenForm
+          screen={screen}
+          githubEnabled={isGitHubAuthConfigured}
+          passwordEnabled={isPasswordAuthConfigured}
+        />
         <p className="mt-6 text-sm text-neutral-900/60">
-          {isAuthConfigured
-            ? screen.footnote
-            : "GitHub sign-in is not configured in this environment."}
+          {isPasswordAuthConfigured && isGitHubAuthConfigured
+            ? "Passwords are stored as a hash. GitHub stays a separate sign-in."
+            : isPasswordAuthConfigured
+              ? "Passwords are stored as a hash."
+              : isGitHubAuthConfigured
+                ? screen.footnote
+                : "Sign-in is not configured in this environment."}
         </p>
       </section>
     </main>

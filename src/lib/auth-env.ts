@@ -1,8 +1,14 @@
-export const isAuthConfigured = Boolean(
+export const isGitHubAuthConfigured = Boolean(
   process.env.AUTH_SECRET &&
     process.env.AUTH_GITHUB_ID &&
     process.env.AUTH_GITHUB_SECRET,
 );
+
+export const isPasswordAuthConfigured = Boolean(
+  process.env.AUTH_SECRET && (process.env.POSTGRES_URL || process.env.DATABASE_URL),
+);
+
+export const isAuthConfigured = isGitHubAuthConfigured || isPasswordAuthConfigured;
 
 export const isDatabaseConfigured = Boolean(
   process.env.POSTGRES_URL || process.env.DATABASE_URL,
