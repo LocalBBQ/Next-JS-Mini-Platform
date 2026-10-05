@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PinChip, PinToggle } from "@/components/PinControls";
-import { tickerKey, useBoardPins } from "@/lib/board-pins";
+import { preferSaved, tickerKey, useBoardPins } from "@/lib/board-pins";
 import { formatChange, formatPrice } from "@/lib/stocks";
 import type { StockQuote, StockTicker } from "@/lib/types";
 
@@ -48,10 +48,10 @@ export function StocksApplet({
   tickers: StockTicker[];
 }) {
   const pins = useBoardPins();
-  const personal = pins.personal;
-  const chips = personal ? pins.tickers : tickers;
+  const saved = preferSaved(pins.signedIn, pins.ready, pins.tickers, tickers);
+  const chips = saved.items;
   const [selected, setSelected] = useState<StockTicker | null>(
-    personal ? null : (tickers.find((ticker) => ticker.isDefault) ?? tickers[0] ?? null),
+    tickers.find((ticker) => ticker.isDefault) ?? tickers[0] ?? null,
   );
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [query, setQuery] = useState("");
@@ -63,12 +63,20 @@ export function StocksApplet({
 
   useEffect(() => {
     if (!pins.ready) return;
-    const fallback = personal ? pins.tickers : tickers;
-    setSelected((current) => {
-      if (current) return current;
-      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
-    });
-  }, [pins.ready, personal, pins.tickers, tickers]);
+    const savedTickers = pins.tickers;
+    if (pins.signedIn && savedTickers.length > 0) {
+      setSelected((current) => {
+        if (current && savedTickers.some((item) => tickerKey(item) === tickerKey(current))) {
+          return current;
+        }
+        return savedTickers.find((item) => item.isDefault) ?? savedTickers[0] ?? null;
+      });
+      return;
+    }
+    setSelected(
+      (current) => current ?? tickers.find((item) => item.isDefault) ?? tickers[0] ?? null,
+    );
+  }, [pins.ready, pins.signedIn, pins.tickers, tickers]);
 
   useEffect(() => {
     const symbols = [
@@ -76,8 +84,6 @@ export function StocksApplet({
         [selected?.symbol, ...chips.map((ticker) => ticker.symbol)].filter(Boolean) as string[],
       ),
     ];
-
-    if (personal && !pins.ready) return;
 
     if (symbols.length === 0) {
       setQuotes([]);
@@ -113,7 +119,7 @@ export function StocksApplet({
 
     void load();
     return () => controller.abort();
-  }, [selected?.symbol, chips, personal, pins.ready]);
+  }, [selected?.symbol, chips]);
 
   useEffect(() => {
     if (query.trim().length < 1) {
@@ -232,7 +238,7 @@ export function StocksApplet({
           <PinToggle
             pinned={false}
             label={selected.symbol}
-            disabled={pins.saving || (personal && !pins.ready)}
+            disabled={pins.saving}
             onToggle={() => pins.pinTicker(selected)}
           />
         </div>
@@ -241,16 +247,13 @@ export function StocksApplet({
       {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
 
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {personal && !pins.ready ? (
-          <p className="text-sm text-neutral-900/60">Loading your stocks…</p>
-        ) : null}
         {chips.map((item) => (
           <PinChip
             key={item.id}
             active={tickerKey(item) === (selected ? tickerKey(selected) : "")}
             label={item.symbol}
             onOpen={() => chooseTicker(item)}
-            onUnpin={personal ? () => pins.unpinTicker(item) : undefined}
+            onUnpin={saved.owned ? () => pins.unpinTicker(item) : undefined}
           />
         ))}
       </div>
@@ -260,9 +263,6 @@ export function StocksApplet({
           <p className="text-neutral-900/70">Fetching the latest quotes…</p>
         ) : null}
         {status === "error" ? <p className="text-amber-800">{message}</p> : null}
-        {status === "ready" && !quote && personal && pins.ready && pins.tickers.length === 0 ? (
-          <p className="text-neutral-900/70">Search for a stock and pin it to this board.</p>
-        ) : null}
         {status === "ready" && quote ? (
           <>
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">

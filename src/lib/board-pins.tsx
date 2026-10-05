@@ -11,8 +11,6 @@ type PinLists = Pick<UserBoard, "locations" | "tickers" | "teams">;
 type BoardPinsValue = {
   signedIn: boolean;
   ready: boolean;
-  /** Saved pins should replace the shared catalog. */
-  personal: boolean;
   saving: boolean;
   error: string;
   locations: WeatherPlace[];
@@ -41,6 +39,12 @@ export function tickerKey(ticker: StockTicker) {
 
 export function teamKey(team: SportsTeam) {
   return `${team.league}-${team.abbreviation.trim().toUpperCase()}`;
+}
+
+/** Use a saved list only after it has pins. An empty list keeps the shared catalog. */
+export function preferSaved<T>(signedIn: boolean, ready: boolean, saved: T[], shared: T[]) {
+  const owned = signedIn && ready && saved.length > 0;
+  return { items: owned ? saved : shared, owned };
 }
 
 function stablePlace(place: WeatherPlace): WeatherPlace {
@@ -82,7 +86,6 @@ export function BoardPinsProvider({
 }) {
   const [lists, setLists] = useState<PinLists>(EMPTY);
   const [ready, setReady] = useState(!user);
-  const [available, setAvailable] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const listsRef = useRef(lists);
@@ -93,14 +96,12 @@ export function BoardPinsProvider({
     if (!user) {
       listsRef.current = EMPTY;
       setLists(EMPTY);
-      setAvailable(false);
       setReady(true);
       return;
     }
 
     let cancelled = false;
     setReady(false);
-    setAvailable(false);
     setError("");
 
     fetchUserBoard()
@@ -111,14 +112,12 @@ export function BoardPinsProvider({
           : EMPTY;
         listsRef.current = next;
         setLists(next);
-        setAvailable(true);
         setReady(true);
       })
       .catch((loadError) => {
         if (cancelled) return;
         listsRef.current = EMPTY;
         setLists(EMPTY);
-        setAvailable(false);
         setError(loadError instanceof Error ? loadError.message : "Could not load your board.");
         setReady(true);
       });
@@ -153,7 +152,6 @@ export function BoardPinsProvider({
         };
         listsRef.current = saved;
         setLists(saved);
-        setAvailable(true);
       } catch (saveError) {
         listsRef.current = previous;
         setLists(previous);
@@ -247,7 +245,6 @@ export function BoardPinsProvider({
   const value: BoardPinsValue = {
     signedIn: Boolean(user),
     ready,
-    personal: Boolean(user) && (!ready || available),
     saving,
     error,
     locations: lists.locations,

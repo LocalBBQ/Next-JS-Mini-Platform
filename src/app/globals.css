@@ -58,9 +58,12 @@ body {
   padding: 0.28rem 0.55rem;
   background: var(--punch);
   border: 2.5px solid var(--ink);
+  color: inherit;
+  font-family: inherit;
   font-size: 0.7rem;
   font-weight: 800;
   line-height: 1;
+  cursor: pointer;
 }
 
 .home-board-studio:hover {

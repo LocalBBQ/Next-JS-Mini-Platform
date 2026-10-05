@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { GlassScrollArea } from "@/components/GlassScrollArea";
 import { PinChip, PinToggle } from "@/components/PinControls";
-import { placeKey, useBoardPins } from "@/lib/board-pins";
+import { placeKey, preferSaved, useBoardPins } from "@/lib/board-pins";
 import type { WeatherPlace, WeatherSnapshot } from "@/lib/types";
 import { describeWeather, formatTemp, placeLabel } from "@/lib/weather";
 
@@ -29,10 +29,10 @@ export function WeatherApplet({
   locations: WeatherPlace[];
 }) {
   const pins = useBoardPins();
-  const personal = pins.personal;
-  const chips = personal ? pins.locations : locations;
+  const saved = preferSaved(pins.signedIn, pins.ready, pins.locations, locations);
+  const chips = saved.items;
   const [place, setPlace] = useState<WeatherPlace | null>(
-    personal ? null : (locations.find((item) => item.isDefault) ?? locations[0] ?? null),
+    locations.find((item) => item.isDefault) ?? locations[0] ?? null,
   );
   const [weather, setWeather] = useState<WeatherSnapshot | null>(null);
   const [unit, setUnit] = useState<Unit>("f");
@@ -45,12 +45,20 @@ export function WeatherApplet({
 
   useEffect(() => {
     if (!pins.ready) return;
-    const fallback = personal ? pins.locations : locations;
-    setPlace((current) => {
-      if (current) return current;
-      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
-    });
-  }, [pins.ready, personal, pins.locations, locations]);
+    const savedPlaces = pins.locations;
+    if (pins.signedIn && savedPlaces.length > 0) {
+      setPlace((current) => {
+        if (current && savedPlaces.some((item) => placeKey(item) === placeKey(current))) {
+          return current;
+        }
+        return savedPlaces.find((item) => item.isDefault) ?? savedPlaces[0] ?? null;
+      });
+      return;
+    }
+    setPlace(
+      (current) => current ?? locations.find((item) => item.isDefault) ?? locations[0] ?? null,
+    );
+  }, [pins.ready, pins.signedIn, pins.locations, locations]);
 
   useEffect(() => {
     if (!place) {
@@ -299,7 +307,7 @@ export function WeatherApplet({
           <PinToggle
             pinned={false}
             label={placeLabel(place)}
-            disabled={pins.saving || (personal && !pins.ready)}
+            disabled={pins.saving}
             onToggle={() => pins.pinLocation(place)}
           />
         </div>
@@ -308,16 +316,13 @@ export function WeatherApplet({
       {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
 
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {personal && !pins.ready ? (
-          <p className="text-sm text-neutral-900/60">Loading your cities…</p>
-        ) : null}
         {chips.map((item) => (
           <PinChip
             key={item.id}
             active={place ? placeKey(item) === placeKey(place) : false}
             label={item.state ? `${item.name}, ${item.state}` : item.name}
             onOpen={() => choosePlace(item)}
-            onUnpin={personal ? () => pins.unpinLocation(item) : undefined}
+            onUnpin={saved.owned ? () => pins.unpinLocation(item) : undefined}
           />
         ))}
       </div>
@@ -328,9 +333,6 @@ export function WeatherApplet({
         ) : null}
         {status === "error" ? (
           <p className="text-amber-100">{message}</p>
-        ) : null}
-        {status === "ready" && !weather && personal && pins.ready && pins.locations.length === 0 ? (
-          <p className="text-neutral-900/70">Search for a city and pin it to this board.</p>
         ) : null}
         {status === "ready" && weather && place ? (
           <>

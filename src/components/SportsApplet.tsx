@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { PinChip, PinToggle } from "@/components/PinControls";
-import { teamKey, useBoardPins } from "@/lib/board-pins";
+import { preferSaved, teamKey, useBoardPins } from "@/lib/board-pins";
 import { formatGameTime, SPORTS_LEAGUES } from "@/lib/sports";
 import type { SportsGame, SportsLeague, SportsTeam } from "@/lib/types";
 
@@ -48,11 +48,11 @@ export function SportsApplet({
   teams: SportsTeam[];
 }) {
   const pins = useBoardPins();
-  const personal = pins.personal;
-  const chips = personal ? pins.teams : teams;
+  const saved = preferSaved(pins.signedIn, pins.ready, pins.teams, teams);
+  const chips = saved.items;
   const defaultTeam = teams.find((team) => team.isDefault) ?? teams[0] ?? null;
   const [league, setLeague] = useState<SportsLeague>(defaultTeam?.league ?? "nba");
-  const [featured, setFeatured] = useState<SportsTeam | null>(personal ? null : defaultTeam);
+  const [featured, setFeatured] = useState<SportsTeam | null>(defaultTeam);
   const [games, setGames] = useState<SportsGame[]>([]);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SportsTeam[]>([]);
@@ -63,12 +63,18 @@ export function SportsApplet({
 
   useEffect(() => {
     if (!pins.ready) return;
-    const fallback = personal ? pins.teams : teams;
-    setFeatured((current) => {
-      if (current) return current;
-      return fallback.find((item) => item.isDefault) ?? fallback[0] ?? null;
-    });
-  }, [pins.ready, personal, pins.teams, teams]);
+    const savedTeams = pins.teams;
+    if (pins.signedIn && savedTeams.length > 0) {
+      setFeatured((current) => {
+        if (current && savedTeams.some((item) => teamKey(item) === teamKey(current))) {
+          return current;
+        }
+        return savedTeams.find((item) => item.isDefault) ?? savedTeams[0] ?? null;
+      });
+      return;
+    }
+    setFeatured((current) => current ?? teams.find((item) => item.isDefault) ?? teams[0] ?? null);
+  }, [pins.ready, pins.signedIn, pins.teams, teams]);
 
   useEffect(() => {
     if (featured) setLeague(featured.league);
@@ -247,7 +253,7 @@ export function SportsApplet({
           <PinToggle
             pinned={false}
             label={featured.name}
-            disabled={pins.saving || (personal && !pins.ready)}
+            disabled={pins.saving}
             onToggle={() => pins.pinTeam(featured)}
           />
         </div>
@@ -256,19 +262,13 @@ export function SportsApplet({
       {pins.error ? <p className="relative z-10 mt-3 text-sm text-amber-800">{pins.error}</p> : null}
 
       <div className="relative z-10 mt-4 flex flex-wrap gap-2">
-        {personal && !pins.ready ? (
-          <p className="text-sm text-neutral-900/60">Loading your teams…</p>
-        ) : null}
-        {personal && pins.ready && chips.length === 0 ? (
-          <p className="text-sm text-neutral-900/70">Search for a team and pin it to this board.</p>
-        ) : null}
         {chips.map((item) => (
           <PinChip
             key={item.id}
             active={featured ? teamKey(item) === teamKey(featured) : false}
             label={item.name}
             onOpen={() => chooseTeam(item)}
-            onUnpin={personal ? () => unpin(item) : undefined}
+            onUnpin={saved.owned ? () => unpin(item) : undefined}
           />
         ))}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import type { BoardUser } from "@/lib/types";
 
 export function AuthControls({
@@ -20,5 +21,12 @@ export function AuthControls({
     );
   }
 
-  return <span className="home-board-user">{user.name || "Signed in"}</span>;
+  return (
+    <>
+      <span className="home-board-user">{user.name || "Signed in"}</span>
+      <button type="button" className="home-board-studio" onClick={() => signOut()}>
+        Sign out
+      </button>
+    </>
+  );
 }
