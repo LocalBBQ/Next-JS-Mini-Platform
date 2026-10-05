@@ -456,7 +456,14 @@ export function PlatformShell({
   }, []);
 
   return (
-    <BoardPinsProvider user={user}>
+    <BoardPinsProvider
+      user={user}
+      defaults={{
+        locations: content.locations,
+        tickers: content.tickers,
+        teams: content.teams,
+      }}
+    >
     <div className="home-board-page" data-theme={theme}>
       {showStudio || authEnabled ? (
         <div className="home-board-tools">

@@ -77,11 +77,56 @@ function stableTeam(team: SportsTeam): SportsTeam {
   };
 }
 
+function uniqueBy<T>(items: T[], key: (item: T) => string) {
+  const seen = new Set<string>();
+  const next: T[] = [];
+  for (const item of items) {
+    const id = key(item);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    next.push(item);
+  }
+  return next;
+}
+
+function catalogPlaces(places: WeatherPlace[]) {
+  return uniqueBy(
+    places.map((place) => ({ ...stablePlace(place), isDefault: Boolean(place.isDefault) })),
+    (place) => place.id,
+  );
+}
+
+function catalogTickers(tickers: StockTicker[]) {
+  return uniqueBy(
+    tickers.map((ticker) => ({ ...stableTicker(ticker), isDefault: Boolean(ticker.isDefault) })),
+    (ticker) => ticker.symbol,
+  );
+}
+
+function catalogTeams(teams: SportsTeam[]) {
+  return uniqueBy(
+    teams.map((team) => ({ ...stableTeam(team), isDefault: Boolean(team.isDefault) })),
+    (team) => team.id,
+  );
+}
+
+/** First save copies the shared catalog so a new pin does not replace those defaults. */
+function inheritList<T>(existing: T[], shared: T[], next: T, key: (item: T) => string) {
+  const base = existing.length > 0 ? existing : shared;
+  if (base.some((item) => key(item) === key(next))) {
+    return existing.length > 0 ? null : base;
+  }
+  if (base.length >= MAX_PINS) return "full" as const;
+  return [...base, next];
+}
+
 export function BoardPinsProvider({
   user,
+  defaults = EMPTY,
   children,
 }: {
   user: BoardUser | null;
+  defaults?: PinLists;
   children: ReactNode;
 }) {
   const [lists, setLists] = useState<PinLists>(EMPTY);
@@ -89,8 +134,10 @@ export function BoardPinsProvider({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const listsRef = useRef(lists);
+  const defaultsRef = useRef(defaults);
   const savingRef = useRef(false);
   listsRef.current = lists;
+  defaultsRef.current = defaults;
 
   useEffect(() => {
     if (!user) {
@@ -166,16 +213,19 @@ export function BoardPinsProvider({
 
   const pinLocation = useCallback(
     (place: WeatherPlace) => {
-      const nextPlace = stablePlace(place);
-      const existing = listsRef.current.locations;
-      if (existing.some((item) => item.id === nextPlace.id)) return;
-      if (existing.length >= MAX_PINS) {
+      const nextPlace = { ...stablePlace(place), isDefault: false };
+      const next = inheritList(
+        listsRef.current.locations,
+        catalogPlaces(defaultsRef.current.locations),
+        nextPlace,
+        (item) => item.id,
+      );
+      if (!next) return;
+      if (next === "full") {
         setError("You can pin up to 40 cities.");
         return;
       }
-      void commit({
-        locations: [...existing, { ...nextPlace, isDefault: existing.length === 0 }],
-      });
+      void commit({ locations: next });
     },
     [commit],
   );
@@ -192,16 +242,19 @@ export function BoardPinsProvider({
 
   const pinTicker = useCallback(
     (ticker: StockTicker) => {
-      const nextTicker = stableTicker(ticker);
-      const existing = listsRef.current.tickers;
-      if (existing.some((item) => tickerKey(item) === nextTicker.symbol)) return;
-      if (existing.length >= MAX_PINS) {
+      const nextTicker = { ...stableTicker(ticker), isDefault: false };
+      const next = inheritList(
+        listsRef.current.tickers,
+        catalogTickers(defaultsRef.current.tickers),
+        nextTicker,
+        (item) => item.symbol,
+      );
+      if (!next) return;
+      if (next === "full") {
         setError("You can pin up to 40 stocks.");
         return;
       }
-      void commit({
-        tickers: [...existing, { ...nextTicker, isDefault: existing.length === 0 }],
-      });
+      void commit({ tickers: next });
     },
     [commit],
   );
@@ -218,16 +271,19 @@ export function BoardPinsProvider({
 
   const pinTeam = useCallback(
     (team: SportsTeam) => {
-      const nextTeam = stableTeam(team);
-      const existing = listsRef.current.teams;
-      if (existing.some((item) => teamKey(item) === nextTeam.id)) return;
-      if (existing.length >= MAX_PINS) {
+      const nextTeam = { ...stableTeam(team), isDefault: false };
+      const next = inheritList(
+        listsRef.current.teams,
+        catalogTeams(defaultsRef.current.teams),
+        nextTeam,
+        (item) => item.id,
+      );
+      if (!next) return;
+      if (next === "full") {
         setError("You can pin up to 40 teams.");
         return;
       }
-      void commit({
-        teams: [...existing, { ...nextTeam, isDefault: existing.length === 0 }],
-      });
+      void commit({ teams: next });
     },
     [commit],
   );
