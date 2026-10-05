@@ -17,13 +17,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   if (isAuthConfigured) {
     const session = await auth();
     if (session?.user?.id) redirect("/");
   }
 
-  const screen = await getAuthScreen();
+  const [{ error }, screen] = await Promise.all([searchParams, getAuthScreen()]);
+  const denied = error === "AccessDenied";
 
   return (
     <main className="home-board-page items-center justify-center px-6 py-16">
@@ -46,17 +51,20 @@ export default async function SignInPage() {
         ) : null}
         <AuthScreenForm
           screen={screen}
-          githubEnabled={isGitHubAuthConfigured}
+          githubEnabled={isGitHubAuthConfigured && !isPasswordAuthConfigured}
           passwordEnabled={isPasswordAuthConfigured}
         />
+        {denied ? (
+          <p className="mt-6 text-sm text-amber-800">
+            This sign-in isn't available for that account.
+          </p>
+        ) : null}
         <p className="mt-6 text-sm text-neutral-900/60">
-          {isPasswordAuthConfigured && isGitHubAuthConfigured
-            ? "Passwords are stored as a hash. GitHub stays a separate sign-in."
-            : isPasswordAuthConfigured
-              ? "Passwords are stored as a hash."
-              : isGitHubAuthConfigured
-                ? screen.footnote
-                : "Sign-in is not configured in this environment."}
+          {isPasswordAuthConfigured
+            ? "Passwords are stored as a hash."
+            : isGitHubAuthConfigured
+              ? screen.footnote
+              : "Sign-in is not configured in this environment."}
         </p>
       </section>
     </main>

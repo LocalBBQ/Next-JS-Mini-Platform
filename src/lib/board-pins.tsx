@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { stashPendingPin, takePendingPin } from "@/lib/pending-pin";
 import { fetchUserBoard, persistUserBoard } from "@/lib/user-board-client";
 import type { BoardUser, SportsTeam, StockTicker, UserBoard, WeatherPlace } from "@/lib/types";
 
@@ -214,6 +215,11 @@ export function BoardPinsProvider({
   const pinLocation = useCallback(
     (place: WeatherPlace) => {
       const nextPlace = { ...stablePlace(place), isDefault: false };
+      if (!user) {
+        stashPendingPin({ kind: "location", item: nextPlace });
+        window.location.assign("/signin");
+        return;
+      }
       const next = inheritList(
         listsRef.current.locations,
         catalogPlaces(defaultsRef.current.locations),
@@ -227,7 +233,7 @@ export function BoardPinsProvider({
       }
       void commit({ locations: next });
     },
-    [commit],
+    [commit, user],
   );
 
   const unpinLocation = useCallback(
@@ -243,6 +249,11 @@ export function BoardPinsProvider({
   const pinTicker = useCallback(
     (ticker: StockTicker) => {
       const nextTicker = { ...stableTicker(ticker), isDefault: false };
+      if (!user) {
+        stashPendingPin({ kind: "ticker", item: nextTicker });
+        window.location.assign("/signin");
+        return;
+      }
       const next = inheritList(
         listsRef.current.tickers,
         catalogTickers(defaultsRef.current.tickers),
@@ -256,7 +267,7 @@ export function BoardPinsProvider({
       }
       void commit({ tickers: next });
     },
-    [commit],
+    [commit, user],
   );
 
   const unpinTicker = useCallback(
@@ -272,6 +283,11 @@ export function BoardPinsProvider({
   const pinTeam = useCallback(
     (team: SportsTeam) => {
       const nextTeam = { ...stableTeam(team), isDefault: false };
+      if (!user) {
+        stashPendingPin({ kind: "team", item: nextTeam });
+        window.location.assign("/signin");
+        return;
+      }
       const next = inheritList(
         listsRef.current.teams,
         catalogTeams(defaultsRef.current.teams),
@@ -285,8 +301,17 @@ export function BoardPinsProvider({
       }
       void commit({ teams: next });
     },
-    [commit],
+    [commit, user],
   );
+
+  useEffect(() => {
+    if (!user || !ready) return;
+    const pending = takePendingPin();
+    if (!pending) return;
+    if (pending.kind === "location") pinLocation(pending.item);
+    if (pending.kind === "ticker") pinTicker(pending.item);
+    if (pending.kind === "team") pinTeam(pending.item);
+  }, [user, ready, pinLocation, pinTicker, pinTeam]);
 
   const unpinTeam = useCallback(
     (team: SportsTeam) => {

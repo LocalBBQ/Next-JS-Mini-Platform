@@ -22,7 +22,7 @@ export function AuthScreenForm({
   const [mode, setMode] = useState<Mode>("signup");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const showGitHub = githubEnabled || !passwordEnabled;
+  const showGitHub = githubEnabled && !passwordEnabled;
 
   function continueWithGitHub() {
     void signIn("github", { callbackUrl: "/" });

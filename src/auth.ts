@@ -2,7 +2,7 @@ import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
-import { isGitHubAuthConfigured, isPasswordAuthConfigured } from "@/lib/auth-env";
+import { canSeeStudio, isGitHubAuthConfigured, isPasswordAuthConfigured } from "@/lib/auth-env";
 import { findUserByEmail, verifyUserPassword } from "@/lib/users";
 
 const providers: Provider[] = [];
@@ -44,8 +44,21 @@ if (isPasswordAuthConfigured) {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/signin",
+    error: "/signin",
+  },
   providers,
   callbacks: {
+    signIn({ account, profile, user }) {
+      if (account?.provider !== "github") return true;
+      const email =
+        (typeof profile?.email === "string" ? profile.email : null) ?? user.email ?? null;
+      return canSeeStudio({
+        email,
+        id: account.providerAccountId ?? user.id ?? null,
+      });
+    },
     jwt({ token, user }) {
       if (user?.id) token.sub = user.id;
       return token;
